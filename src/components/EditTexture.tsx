@@ -4,6 +4,44 @@ import { useAuth } from '../contexts/AuthContext';
 import { Texture } from '../lib/supabase';
 import { deleteTextureFiles } from '../lib/storageUtils';
 
+const AIRCRAFT_OPTIONS = [
+  'Defiant',
+  'Gladiator',
+  'Hurricane',
+  'Spitfire',
+  'Whirlwind',
+  'Blenheim',
+  'Swordfish',
+  'Bf-109 E',
+  'Bf-109 F/V',
+  'Bf-110',
+  'Me-262',
+  'He-111',
+  'Ju-87',
+  'Ju-88',
+  'D.520',
+  'H-75',
+  'M.S.406',
+  'Other/Modded Aircraft',
+];
+
+const CATEGORY_OPTIONS = [
+  'Battle of Britain/France',
+  'Historical',
+  'Semi-historical',
+  'Non-historical',
+  'Captured',
+  'Meme',
+  'Other',
+];
+
+const TEXTURE_TYPE_OPTIONS = [
+  'Simple Texture',
+  'Detailed Texture',
+  'Detailed and Weathered Texture',
+  'Other',
+];
+
 interface EditTextureProps {
   texture: Texture;
   onClose: () => void;
@@ -121,7 +159,7 @@ export default function EditTexture({ texture, onClose, onUpdate }: EditTextureP
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg max-h-screen overflow-y-auto">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Edit Texture</h2>
         <button
@@ -188,13 +226,19 @@ export default function EditTexture({ texture, onClose, onUpdate }: EditTextureP
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Aircraft *
           </label>
-          <input
-            type="text"
+          <select
             value={aircraft}
             onChange={(e) => setAircraft(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
-          />
+          >
+            <option value="">Select aircraft</option>
+            {AIRCRAFT_OPTIONS.map((aircraftOption) => (
+              <option key={aircraftOption} value={aircraftOption}>
+                {aircraftOption}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
@@ -208,15 +252,11 @@ export default function EditTexture({ texture, onClose, onUpdate }: EditTextureP
             required
           >
             <option value="">Select category</option>
-            <option value="fuselage">Fuselage</option>
-            <option value="wings">Wings</option>
-            <option value="tail">Tail</option>
-            <option value="cockpit">Cockpit</option>
-            <option value="engines">Engines</option>
-            <option value="landing_gear">Landing Gear</option>
-            <option value="interior">Interior</option>
-            <option value="exterior">Exterior</option>
-            <option value="other">Other</option>
+            {CATEGORY_OPTIONS.map((categoryOption) => (
+              <option key={categoryOption} value={categoryOption}>
+                {categoryOption}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -231,14 +271,11 @@ export default function EditTexture({ texture, onClose, onUpdate }: EditTextureP
             required
           >
             <option value="">Select texture type</option>
-            <option value="diffuse">Diffuse</option>
-            <option value="normal">Normal</option>
-            <option value="specular">Specular</option>
-            <option value="emissive">Emissive</option>
-            <option value="roughness">Roughness</option>
-            <option value="metallic">Metallic</option>
-            <option value="ao">Ambient Occlusion</option>
-            <option value="other">Other</option>
+            {TEXTURE_TYPE_OPTIONS.map((typeOption) => (
+              <option key={typeOption} value={typeOption}>
+                {typeOption}
+              </option>
+            ))}
           </select>
         </div>
 
