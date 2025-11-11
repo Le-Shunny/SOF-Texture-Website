@@ -319,7 +319,8 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <form onSubmit={handleSubmit} className="space-y-6">
         <Dropzone
           onDrop={handleTextureDrop}
           accept={{ 'image/png': ['.png'] }}
@@ -447,7 +448,8 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
         >
           {loading ? 'Updating...' : 'Update Texture'}
         </button>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }
