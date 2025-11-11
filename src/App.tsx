@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import BrowseTextures from './components/BrowseTextures';
@@ -12,6 +12,12 @@ function App() {
   const [currentPage, setCurrentPage] = useState('browse');
   const [selectedTexture, setSelectedTexture] = useState<Texture | null>(null);
   const [editingTexture, setEditingTexture] = useState<Texture | null>(null);
+
+  useEffect(() => {
+    if (currentPage !== 'edit') {
+      setEditingTexture(null);
+    }
+  }, [currentPage]);
 
   const handleViewTexture = (texture: Texture) => {
     setSelectedTexture(texture);

@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Texture } from '../lib/supabase';
 import { deleteTextureFiles } from '../lib/storageUtils';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, ArrowLeft } from 'lucide-react';
 
 const AIRCRAFT_OPTIONS = [
   'Defiant',
@@ -290,6 +290,13 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
 
   return (
     <div className="max-w-3xl mx-auto">
+      <button
+        onClick={() => onNavigate && onNavigate('browse')}
+        className="flex items-center gap-2 mb-4 text-gray-600 hover:text-gray-800"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        Back to Browse
+      </button>
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Edit Texture</h1>
 
       {error && (
@@ -305,6 +312,26 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        <Dropzone
+          onDrop={handleTextureDrop}
+          accept={{ 'image/png': ['.png'] }}
+          file={textureFile}
+          preview={texturePreview}
+          clearFile={() => setTextureFile(null)}
+          label="Texture File *"
+          description="(PNG - 2048x2048 or 4096x4096 only)"
+        />
+
+        <Dropzone
+          onDrop={handleThumbnailDrop}
+          accept={{ 'image/*': ['.png', '.jpg', '.jpeg', '.bmp'] }}
+          file={thumbnailFile}
+          preview={thumbnailPreview}
+          clearFile={() => setThumbnailFile(null)}
+          label="Thumbnail File *"
+          description="(Image files - Max 5MB)"
+        />
+
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
             Title *
@@ -404,26 +431,6 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
             ))}
           </select>
         </div>
-
-        <Dropzone
-          onDrop={handleTextureDrop}
-          accept={{ 'image/png': ['.png'] }}
-          file={textureFile}
-          preview={texturePreview}
-          clearFile={() => setTextureFile(null)}
-          label="Texture File *"
-          description="(PNG - 2048x2048 or 4096x4096 only)"
-        />
-
-        <Dropzone
-          onDrop={handleThumbnailDrop}
-          accept={{ 'image/*': ['.png', '.jpg', '.jpeg', '.bmp'] }}
-          file={thumbnailFile}
-          preview={thumbnailPreview}
-          clearFile={() => setThumbnailFile(null)}
-          label="Thumbnail File *"
-          description="(Image files - Max 5MB)"
-        />
 
         <button
           type="submit"
