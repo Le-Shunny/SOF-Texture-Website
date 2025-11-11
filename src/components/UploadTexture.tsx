@@ -333,7 +333,7 @@ export default function UploadTexture() {
           preview={thumbnailPreview}
           clearFile={clearThumbnailFile}
           label="Thumbnail *"
-          description="Recommended: 512x512"
+          description="Recommended: 3:2 aspect ratio."
         />
 
         <div>
