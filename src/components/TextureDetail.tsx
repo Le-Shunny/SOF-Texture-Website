@@ -367,7 +367,7 @@ export default function TextureDetail({ texture, onClose, onEdit }: TextureDetai
                   </button>
                 )}
 
-                {isAdmin && onEdit && (
+                {user && texture.user_id === user.id && onEdit && (
                   <button
                     onClick={() => onEdit(localTexture)}
                     className="flex items-center justify-center gap-2 w-full bg-gray-600 text-white py-3 px-4 rounded-md hover:bg-gray-700 transition"
