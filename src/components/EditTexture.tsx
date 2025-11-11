@@ -131,12 +131,14 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
   const [error, setError] = useState('');
 
   // Form state
-  const [title, setTitle] = useState(texture.title);
-  const [description, setDescription] = useState(texture.description);
-  const [author, setAuthor] = useState(texture.author);
-  const [aircraft, setAircraft] = useState(texture.aircraft);
-  const [category, setCategory] = useState(texture.category);
-  const [textureType, setTextureType] = useState(texture.texture_type);
+  const [formData, setFormData] = useState({
+    title: texture.title,
+    description: texture.description,
+    author: texture.author,
+    aircraft: texture.aircraft,
+    category: texture.category,
+    textureType: texture.texture_type,
+  });
 
   // File states
   const [textureFile, setTextureFile] = useState<File | null>(null);
@@ -246,12 +248,12 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
       const { data, error: updateError } = await supabase
         .from('textures')
         .update({
-          title,
-          description,
-          author,
-          aircraft,
-          category,
-          texture_type: textureType,
+          title: formData.title,
+          description: formData.description,
+          author: formData.author,
+          aircraft: formData.aircraft,
+          category: formData.category,
+          texture_type: formData.textureType,
           texture_url: newTextureUrl,
           thumbnail_url: newThumbnailUrl,
           updated_at: new Date().toISOString(),
@@ -339,8 +341,8 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
           <input
             id="title"
             type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
@@ -352,8 +354,8 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
           </label>
           <textarea
             id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             rows={4}
           />
@@ -366,8 +368,8 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
           <input
             id="author"
             type="text"
-            value={author}
-            onChange={(e) => setAuthor(e.target.value)}
+            value={formData.author}
+            onChange={(e) => setFormData({ ...formData, author: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
@@ -379,8 +381,8 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
           </label>
           <select
             id="aircraft"
-            value={aircraft}
-            onChange={(e) => setAircraft(e.target.value)}
+            value={formData.aircraft}
+            onChange={(e) => setFormData({ ...formData, aircraft: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           >
@@ -398,8 +400,8 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
             Category *
           </label>
           <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            value={formData.category}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           >
@@ -418,8 +420,8 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
           </label>
           <select
             id="textureType"
-            value={textureType}
-            onChange={(e) => setTextureType(e.target.value)}
+            value={formData.textureType}
+            onChange={(e) => setFormData({ ...formData, textureType: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           >
