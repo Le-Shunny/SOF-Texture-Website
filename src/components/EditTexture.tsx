@@ -108,7 +108,13 @@ const Dropzone: React.FC<DropzoneProps> = ({ onDrop, accept, file, preview, clea
             <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
             <p className="font-medium">Click to upload or drag and drop</p>
             <p className="text-sm text-gray-500">
-              {isMobile ? 'Tap to select file' : 'PNG, JPG, JPEG, BMP up to 10MB'}
+              {isMobile
+                ? 'Tap to select file'
+                : isDragActive
+                ? 'Drop the file here...'
+                : label.includes('Texture')
+                ? "Drag 'n' drop a file here, or click to select, 10 MB max"
+                : "Drag 'n' drop a file here, or click to select, 5 MB max"}
             </p>
           </div>
         )}
