@@ -1,0 +1,3 @@
+- [x] Remove 'upvotes_low' and 'downvotes_low' from SortOption type in BrowseTextures.tsx
+- [x] Remove "Least Upvoted" and "Least Downvoted" options from the select dropdown in BrowseTextures.tsx
+- [x] Remove the corresponding sort cases for 'upvotes_low' and 'downvotes_low' in sortedTextures in BrowseTextures.tsx
