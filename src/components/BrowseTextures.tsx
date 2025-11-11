@@ -10,7 +10,7 @@ interface BrowseTexturesProps {
 type SortOption = 'relevance' | 'newest' | 'oldest' | 'updated_newest' | 'updated_oldest' | 'upvotes_high' | 'downvotes_high' | 'downloads_high' | 'downloads_low';
 
 export default function BrowseTextures({ onViewTexture }: BrowseTexturesProps) {
-  const { isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [textures, setTextures] = useState<Texture[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -350,7 +350,7 @@ export default function BrowseTextures({ onViewTexture }: BrowseTexturesProps) {
                       </div>
 
                       <p className="text-xs text-gray-500 mb-3">
-                        Updated {new Date(texture.updated_at).toLocaleDateString('en-US', {
+                        {texture.updated_at !== texture.created_at ? 'Updated' : 'Uploaded'} {new Date(texture.updated_at).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'short',
                           day: 'numeric',
@@ -370,7 +370,7 @@ export default function BrowseTextures({ onViewTexture }: BrowseTexturesProps) {
                         </div>
                       </div>
 
-                      {isAdmin && (
+                      {(isAdmin || (user && texture.user_id === user.id)) && (
                         <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => onViewTexture(texture)}
@@ -378,12 +378,14 @@ export default function BrowseTextures({ onViewTexture }: BrowseTexturesProps) {
                           >
                             <Edit className="w-4 h-4" />
                           </button>
-                          <button
-                            onClick={() => handleDelete(texture.id)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {isAdmin && (
+                            <button
+                              onClick={() => handleDelete(texture.id)}
+                              className="p-1 text-red-600 hover:bg-red-50 rounded"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>

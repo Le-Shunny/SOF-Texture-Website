@@ -1,8 +1,7 @@
-- [x] Remove 'upvotes_low' and 'downvotes_low' from SortOption type in BrowseTextures.tsx
-- [x] Remove "Least Upvoted" and "Least Downvoted" options from the select dropdown in BrowseTextures.tsx
-- [x] Remove the corresponding sort cases for 'upvotes_low' and 'downvotes_low' in sortedTextures in BrowseTextures.tsx
-- [ ] Add edit button for texture owners in TextureDetail.tsx
-- [ ] Implement inline edit mode in TextureDetail.tsx with form fields for title, description, thumbnail, and texture file
-- [ ] Add save logic that deletes old files and uploads new ones in TextureDetail.tsx
-- [ ] Display "Time updated" in texture details when updated_at differs from created_at
-- [ ] Update BrowseTextures.tsx to allow texture owners to edit from the browse view
+- [ ] Update TextureDetail.tsx: Add conditional display for "Updated" field (show "Time updated" only when updated_at differs from created_at)
+- [ ] Update TextureDetail.tsx: Add dropzone UI for texture and thumbnail in edit mode with previews
+- [ ] Update BrowseTextures.tsx: Add user to useAuth destructuring
+- [ ] Update BrowseTextures.tsx: Change edit button condition to include owners
+- [ ] Update BrowseTextures.tsx: Update date text to be conditional ("Updated" vs "Uploaded")
+- [ ] Test the functionality
+- [ ] Update TODO.md to mark completed tasks

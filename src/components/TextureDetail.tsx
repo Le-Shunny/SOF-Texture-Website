@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase, Texture, Comment, Vote } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { useDropzone } from 'react-dropzone';
 import {
   X,
   Download,
@@ -354,6 +355,24 @@ export default function TextureDetail({ texture, onClose, onEdit }: TextureDetai
     return data.publicUrl;
   };
 
+  const { getRootProps: getTextureRootProps, getInputProps: getTextureInputProps } = useDropzone({
+    onDrop: onTextureDrop,
+    accept: {
+      'image/png': ['.png']
+    },
+    maxSize: 10 * 1024 * 1024, // 10MB
+    multiple: false,
+  });
+
+  const { getRootProps: getThumbnailRootProps, getInputProps: getThumbnailInputProps } = useDropzone({
+    onDrop: onThumbnailDrop,
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg']
+    },
+    maxSize: 5 * 1024 * 1024, // 5MB
+    multiple: false,
+  });
+
   const handleSaveEdit = async () => {
     if (!editForm.title.trim()) {
       alert('Title is required');
@@ -470,138 +489,207 @@ export default function TextureDetail({ texture, onClose, onEdit }: TextureDetai
           </div>
 
           <div className="p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <div className="aspect-[3/2]">
-                <img
-                  src={localTexture.thumbnail_url}
-                  alt={localTexture.title}
-                  className="w-full h-full object-cover rounded-lg shadow-md"
-                />
+            {isEditing ? (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                      <input
+                        type="text"
+                        value={editForm.title}
+                        onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter texture title"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                      <textarea
+                        value={editForm.description}
+                        onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        rows={3}
+                        placeholder="Enter texture description (optional)"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Thumbnail</label>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                        <div className="aspect-[3/2] mb-4">
+                          <img
+                            src={thumbnailPreview || localTexture.thumbnail_url}
+                            alt="Thumbnail preview"
+                            className="w-full h-full object-cover rounded"
+                          />
+                        </div>
+                        <div
+                          {...getThumbnailRootProps()}
+                          className="cursor-pointer text-center text-gray-500 hover:text-gray-700"
+                        >
+                          <input {...getThumbnailInputProps()} />
+                          <Upload className="w-8 h-8 mx-auto mb-2" />
+                          <p className="text-sm">Click to upload new thumbnail</p>
+                          <p className="text-xs text-gray-400">PNG, JPG, up to 5MB</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Texture File</label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                    <div className="aspect-[3/2] mb-4 max-w-md mx-auto">
+                      <img
+                        src={texturePreview || localTexture.texture_url}
+                        alt="Texture preview"
+                        className="w-full h-full object-cover rounded"
+                      />
+                    </div>
+                    <div
+                      {...getTextureRootProps()}
+                      className="cursor-pointer text-center text-gray-500 hover:text-gray-700"
+                    >
+                      <input {...getTextureInputProps()} />
+                      <Upload className="w-8 h-8 mx-auto mb-2" />
+                      <p className="text-sm">Click to upload new texture file</p>
+                      <p className="text-xs text-gray-400">PNG, 2048x2048 or 4096x4096, up to 10MB</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div className="aspect-[3/2]">
+                  <img
+                    src={localTexture.thumbnail_url}
+                    alt={localTexture.title}
+                    className="w-full h-full object-cover rounded-lg shadow-md"
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500 mb-1">Author</h3>
+                    <p className="text-gray-800">{localTexture.author}</p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500 mb-1">Aircraft</h3>
+                    <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded">
+                      {localTexture.aircraft}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500 mb-1">Category</h3>
+                    <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded">
+                      {localTexture.category}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500 mb-1">Type</h3>
+                    <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded">
+                      {localTexture.texture_type}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500 mb-1">
+                      {localTexture.updated_at !== localTexture.created_at ? 'Time updated' : 'Uploaded'}
+                    </h3>
+                    <p className="text-gray-800 flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      {formatDate(localTexture.updated_at)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500 mb-1">Downloads</h3>
+                    <p className="text-gray-800 flex items-center gap-2">
+                      <Download className="w-4 h-4" />
+                      {localTexture.download_count}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500 mb-1">Texture ID</h3>
+                    <p className="text-gray-800 flex items-center gap-2 font-mono text-xs">
+                      <Hash className="w-4 h-4" />
+                      {localTexture.id}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-4 pt-4">
+                    <button
+                      onClick={() => handleVote('upvote')}
+                      disabled={loading}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${
+                        userVote?.vote_type === 'upvote'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-gray-100 text-gray-700 hover:bg-green-50'
+                      }`}
+                    >
+                      <ThumbsUp className="w-5 h-5" />
+                      <span>{localTexture.upvotes}</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleVote('downvote')}
+                      disabled={loading}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${
+                        userVote?.vote_type === 'downvote'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-gray-100 text-gray-700 hover:bg-red-50'
+                      }`}
+                    >
+                      <ThumbsDown className="w-5 h-5" />
+                      <span>{localTexture.downvotes}</span>
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={handleDownload}
+                    className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition"
+                  >
+                    <Download className="w-5 h-5" />
+                    Download Texture
+                  </button>
+
+                  {user && (
+                    <button
+                      onClick={() => setShowReportModal(true)}
+                      className="flex items-center justify-center gap-2 w-full bg-orange-600 text-white py-3 px-4 rounded-md hover:bg-orange-700 transition"
+                    >
+                      <Flag className="w-5 h-5" />
+                      Report Texture
+                    </button>
+                  )}
+
+                  {isAdmin && onEdit && (
+                    <button
+                      onClick={() => onEdit(localTexture)}
+                      className="flex items-center justify-center gap-2 w-full bg-gray-600 text-white py-3 px-4 rounded-md hover:bg-gray-700 transition"
+                    >
+                      <Edit className="w-5 h-5" />
+                      Edit Texture
+                    </button>
+                  )}
+                </div>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Author</h3>
-                  <p className="text-gray-800">{localTexture.author}</p>
+              {localTexture.description && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Description</h3>
+                  <p className="text-gray-600 whitespace-pre-wrap">{localTexture.description}</p>
                 </div>
-
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Aircraft</h3>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded">
-                    {localTexture.aircraft}
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Category</h3>
-                  <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded">
-                    {localTexture.category}
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Type</h3>
-                  <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded">
-                    {localTexture.texture_type}
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Uploaded</h3>
-                  <p className="text-gray-800 flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    {formatDate(localTexture.created_at)}
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Updated</h3>
-                  <p className="text-gray-800 flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    {formatDate(localTexture.updated_at)}
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Downloads</h3>
-                  <p className="text-gray-800 flex items-center gap-2">
-                    <Download className="w-4 h-4" />
-                    {localTexture.download_count}
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Texture ID</h3>
-                  <p className="text-gray-800 flex items-center gap-2 font-mono text-xs">
-                    <Hash className="w-4 h-4" />
-                    {localTexture.id}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-4 pt-4">
-                  <button
-                    onClick={() => handleVote('upvote')}
-                    disabled={loading}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${
-                      userVote?.vote_type === 'upvote'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-700 hover:bg-green-50'
-                    }`}
-                  >
-                    <ThumbsUp className="w-5 h-5" />
-                    <span>{localTexture.upvotes}</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleVote('downvote')}
-                    disabled={loading}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${
-                      userVote?.vote_type === 'downvote'
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-gray-100 text-gray-700 hover:bg-red-50'
-                    }`}
-                  >
-                    <ThumbsDown className="w-5 h-5" />
-                    <span>{localTexture.downvotes}</span>
-                  </button>
-                </div>
-
-                <button
-                  onClick={handleDownload}
-                  className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition"
-                >
-                  <Download className="w-5 h-5" />
-                  Download Texture
-                </button>
-
-                {user && (
-                  <button
-                    onClick={() => setShowReportModal(true)}
-                    className="flex items-center justify-center gap-2 w-full bg-orange-600 text-white py-3 px-4 rounded-md hover:bg-orange-700 transition"
-                  >
-                    <Flag className="w-5 h-5" />
-                    Report Texture
-                  </button>
-                )}
-
-                {isAdmin && onEdit && (
-                  <button
-                    onClick={() => onEdit(localTexture)}
-                    className="flex items-center justify-center gap-2 w-full bg-gray-600 text-white py-3 px-4 rounded-md hover:bg-gray-700 transition"
-                  >
-                    <Edit className="w-5 h-5" />
-                    Edit Texture
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {localTexture.description && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Description</h3>
-                <p className="text-gray-600 whitespace-pre-wrap">{localTexture.description}</p>
-              </div>
-            )}
+              )}
 
             <div className="border-t pt-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
