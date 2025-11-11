@@ -100,7 +100,7 @@ export default function UserProfile({ onClose }: UserProfileProps) {
               disabled={loading || success}
             />
             <p className="mt-1 text-xs text-gray-500">
-              Changing your username will update the author name on all your uploaded textures.
+              Changing your username will NOT update the author name on all your uploaded textures.
             </p>
           </div>
 

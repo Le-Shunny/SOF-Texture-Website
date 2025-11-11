@@ -22,6 +22,7 @@ function App() {
   };
 
   const handleEditTexture = (texture: Texture) => {
+    setSelectedTexture(null);
     setEditingTexture(texture);
     setCurrentPage('edit');
   };
