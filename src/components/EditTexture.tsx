@@ -44,11 +44,11 @@ const TEXTURE_TYPE_OPTIONS = [
 
 interface EditTextureProps {
   texture: Texture;
-  onClose: () => void;
   onUpdate: (updatedTexture: Texture) => void;
+  onNavigate: (page: string) => void;
 }
 
-export default function EditTexture({ texture, onClose, onUpdate }: EditTextureProps) {
+export default function EditTexture({ texture, onUpdate, onNavigate }: EditTextureProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -148,7 +148,7 @@ export default function EditTexture({ texture, onClose, onUpdate }: EditTextureP
       setSuccess(true);
       onUpdate(data);
       setTimeout(() => {
-        onClose();
+        onNavigate('browse');
       }, 2000);
     } catch (err: any) {
       console.error('Error updating texture:', err);
@@ -159,16 +159,8 @@ export default function EditTexture({ texture, onClose, onUpdate }: EditTextureP
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg max-h-screen overflow-y-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Edit Texture</h2>
-        <button
-          onClick={onClose}
-          className="text-gray-500 hover:text-gray-700"
-        >
-          ✕
-        </button>
-      </div>
+    <div>
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">Edit Texture</h1>
 
       {error && (
         <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -313,7 +305,7 @@ export default function EditTexture({ texture, onClose, onUpdate }: EditTextureP
           </button>
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => onNavigate('browse')}
             className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400"
           >
             Cancel

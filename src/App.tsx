@@ -23,6 +23,7 @@ function App() {
 
   const handleEditTexture = (texture: Texture) => {
     setEditingTexture(texture);
+    setCurrentPage('edit');
   };
 
   const handleUpdateTexture = (updatedTexture: Texture) => {
@@ -49,6 +50,7 @@ function App() {
             <BrowseTextures onViewTexture={handleViewTexture} />
           )}
           {currentPage === 'upload' && <UploadTexture />}
+          {currentPage === 'edit' && editingTexture && <EditTexture texture={editingTexture} onUpdate={handleUpdateTexture} onNavigate={setCurrentPage} />}
           {currentPage === 'admin' && <AdminPanel onViewTexture={handleViewTexture} />}
         </main>
 
@@ -56,7 +58,7 @@ function App() {
           <TextureDetail texture={selectedTexture} onClose={handleCloseDetail} onEdit={handleEditTexture} />
         )}
 
-        {editingTexture && (
+        {editingTexture && currentPage !== 'edit' && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <EditTexture texture={editingTexture} onClose={handleCloseEdit} onUpdate={handleUpdateTexture} />
           </div>
