@@ -13,6 +13,8 @@ import {
   Trash2,
   Flag,
   Hash,
+  Save,
+  Upload,
 } from 'lucide-react';
 
 interface TextureDetailProps {
@@ -31,6 +33,15 @@ export default function TextureDetail({ texture, onClose, onEdit }: TextureDetai
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportCategory, setReportCategory] = useState<'inappropriate_content' | 'theft' | 'other'>('inappropriate_content');
   const [reportReason, setReportReason] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: texture.title,
+    description: texture.description || '',
+  });
+  const [textureFile, setTextureFile] = useState<File | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [texturePreview, setTexturePreview] = useState<string | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
 
   useEffect(() => {
     fetchComments();
@@ -246,18 +257,216 @@ export default function TextureDetail({ texture, onClose, onEdit }: TextureDetai
     });
   };
 
+  const isOwner = user && texture.user_id === user.id;
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditForm({
+      title: localTexture.title,
+      description: localTexture.description || '',
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditForm({
+      title: localTexture.title,
+      description: localTexture.description || '',
+    });
+    setTextureFile(null);
+    setThumbnailFile(null);
+    if (texturePreview) URL.revokeObjectURL(texturePreview);
+    if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview);
+    setTexturePreview(null);
+    setThumbnailPreview(null);
+  };
+
+  const validateImageDimensions = (file: File): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const isValid =
+          (img.width === 2048 && img.height === 2048) ||
+          (img.width === 4096 && img.height === 4096);
+        resolve(isValid);
+      };
+      img.onerror = () => resolve(false);
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const onTextureDrop = async (acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/png')) {
+      alert('Texture must be a PNG file');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Texture file size must not exceed 10MB');
+      return;
+    }
+
+    const isValidSize = await validateImageDimensions(file);
+    if (!isValidSize) {
+      alert('Texture must be 2048x2048 or 4096x4096 pixels');
+      return;
+    }
+
+    setTextureFile(file);
+    if (texturePreview) URL.revokeObjectURL(texturePreview);
+    setTexturePreview(URL.createObjectURL(file));
+  };
+
+  const onThumbnailDrop = (acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Thumbnail must be an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Thumbnail file size must not exceed 5MB');
+      return;
+    }
+
+    setThumbnailFile(file);
+    if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview);
+    setThumbnailPreview(URL.createObjectURL(file));
+  };
+
+  const uploadFile = async (file: File, bucket: string): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
+    return data.publicUrl;
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editForm.title.trim()) {
+      alert('Title is required');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      let newTextureUrl = localTexture.texture_url;
+      let newThumbnailUrl = localTexture.thumbnail_url;
+
+      // Upload new files if provided
+      if (textureFile) {
+        newTextureUrl = await uploadFile(textureFile, 'textures');
+      }
+      if (thumbnailFile) {
+        newThumbnailUrl = await uploadFile(thumbnailFile, 'thumbnails');
+      }
+
+      // Update the texture in database
+      const { error: updateError } = await supabase
+        .from('textures')
+        .update({
+          title: editForm.title.trim(),
+          description: editForm.description.trim() || null,
+          texture_url: newTextureUrl,
+          thumbnail_url: newThumbnailUrl,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', localTexture.id);
+
+      if (updateError) throw updateError;
+
+      // Delete old files if new ones were uploaded
+      if (textureFile || thumbnailFile) {
+        const { deleteTextureFiles } = await import('../lib/storageUtils');
+        await deleteTextureFiles(
+          textureFile ? localTexture.texture_url : '',
+          thumbnailFile ? localTexture.thumbnail_url : ''
+        );
+      }
+
+      // Update local state
+      setLocalTexture({
+        ...localTexture,
+        title: editForm.title.trim(),
+        description: editForm.description.trim() || null,
+        texture_url: newTextureUrl,
+        thumbnail_url: newThumbnailUrl,
+      });
+
+      setIsEditing(false);
+      setTextureFile(null);
+      setThumbnailFile(null);
+      if (texturePreview) URL.revokeObjectURL(texturePreview);
+      if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview);
+      setTexturePreview(null);
+      setThumbnailPreview(null);
+
+      alert('Texture updated successfully!');
+    } catch (error) {
+      console.error('Error updating texture:', error);
+      alert('Failed to update texture. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
       <div className="min-h-screen px-4 py-8">
         <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-xl">
           <div className="flex justify-between items-center p-6 border-b">
-            <h2 className="text-2xl font-bold text-gray-800">{localTexture.title}</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            <h2 className="text-2xl font-bold text-gray-800">
+              {isEditing ? 'Edit Texture' : localTexture.title}
+            </h2>
+            <div className="flex items-center gap-2">
+              {isOwner && !isEditing && (
+                <button
+                  onClick={handleEdit}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                >
+                  <Edit className="w-4 h-4" />
+                  Edit
+                </button>
+              )}
+              {isEditing && (
+                <>
+                  <button
+                    onClick={handleCancelEdit}
+                    disabled={loading}
+                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveEdit}
+                    disabled={loading}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition disabled:opacity-50"
+                  >
+                    <Save className="w-4 h-4" />
+                    {loading ? 'Saving...' : 'Save'}
+                  </button>
+                </>
+              )}
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600 transition"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
           </div>
 
           <div className="p-6">
@@ -302,6 +511,14 @@ export default function TextureDetail({ texture, onClose, onEdit }: TextureDetai
                   <p className="text-gray-800 flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
                     {formatDate(localTexture.created_at)}
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">Updated</h3>
+                  <p className="text-gray-800 flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    {formatDate(localTexture.updated_at)}
                   </p>
                 </div>
 

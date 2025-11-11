@@ -330,7 +330,7 @@ export default function BrowseTextures({ onViewTexture }: BrowseTexturesProps) {
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-gray-800 text-lg mb-1">{texture.title}</h3>
                       <p className="text-sm text-gray-600 mb-2">by {texture.author}</p>
-                      
+
                       {texture.description && (
                         <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                           {texture.description}
@@ -348,6 +348,14 @@ export default function BrowseTextures({ onViewTexture }: BrowseTexturesProps) {
                           {texture.texture_type}
                         </span>
                       </div>
+
+                      <p className="text-xs text-gray-500 mb-3">
+                        Updated {new Date(texture.updated_at).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </p>
                     </div>
 
                     <div className="flex items-center gap-4 mt-2 sm:mt-0">
