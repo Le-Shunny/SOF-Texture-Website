@@ -47,7 +47,7 @@ function App() {
 
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-gray-50">
+      <div className={`min-h-screen bg-gray-50 ${selectedTexture || editingTexture ? 'overflow-hidden' : ''}`}>
         <div id="top-ad-placeholder" className="w-full h-0 bg-transparent" />
 
         <Navbar onNavigate={setCurrentPage} currentPage={currentPage} />
@@ -66,7 +66,7 @@ function App() {
         )}
 
         {editingTexture && currentPage !== 'edit' && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60">
             <EditTexture texture={editingTexture} onClose={handleCloseEdit} onUpdate={handleUpdateTexture} />
           </div>
         )}

@@ -247,8 +247,8 @@ export default function TextureDetail({ texture, onClose, onEdit }: TextureDetai
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
-      <div className="min-h-screen px-4 py-8">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-60 overflow-y-auto">
+      <div className="min-h-screen px-6 sm:px-4 py-8">
         <div className="max-w-full lg:max-w-5xl mx-auto bg-white rounded-lg shadow-xl">
           <div className="flex justify-between items-center p-6 border-b">
             <h2 className="text-2xl font-bold text-gray-800">{localTexture.title}</h2>

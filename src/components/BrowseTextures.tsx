@@ -156,7 +156,7 @@ export default function BrowseTextures({ onViewTexture }: BrowseTexturesProps) {
 
         <div className="bg-white rounded-lg shadow-md">
           <div className="p-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-2 flex-1">
                 <Search className="w-5 h-5 text-gray-400" />
                 <input
@@ -172,7 +172,7 @@ export default function BrowseTextures({ onViewTexture }: BrowseTexturesProps) {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  className="w-auto px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 >
                   <option value="relevance">Relevance</option>
                   <option value="newest">Newest First</option>
