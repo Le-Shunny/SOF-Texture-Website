@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase, Texture } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Search, Download, Edit, Trash2, ThumbsUp, ThumbsDown, ArrowUpDown, Grid3X3, List } from 'lucide-react';
+import { Search, Download, Edit, Trash2, ThumbsUp, ThumbsDown, ArrowUpDown } from 'lucide-react';
 
 interface BrowseTexturesProps {
   onViewTexture: (texture: Texture) => void;
@@ -19,7 +19,6 @@ export default function BrowseTextures({ onViewTexture }: BrowseTexturesProps) {
   const [filterType, setFilterType] = useState<string[]>([]);
   const [filtersExpanded, setFiltersExpanded] = useState(true);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
 
   useEffect(() => {
     fetchTextures();
@@ -159,13 +158,6 @@ export default function BrowseTextures({ onViewTexture }: BrowseTexturesProps) {
           <div className="p-4 border-b border-gray-200">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-2 flex-1">
-                <button
-                  onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                  className="p-2 text-gray-400 hover:text-gray-600 transition sm:hidden"
-                  title={viewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
-                >
-                  {viewMode === 'grid' ? <List className="w-5 h-5" /> : <Grid3X3 className="w-5 h-5" />}
-                </button>
                 <Search className="w-5 h-5 text-gray-400" />
                 <input
                   type="text"
@@ -315,7 +307,7 @@ export default function BrowseTextures({ onViewTexture }: BrowseTexturesProps) {
           No textures found. Try adjusting your filters or search terms.
         </div>
       ) : (
-        <div className={viewMode === 'list' ? "grid grid-cols-1 gap-4" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"}>
+        <div className="grid grid-cols-1 gap-4">
           {sortedTextures.map((texture) => (
             <div
               key={texture.id}
