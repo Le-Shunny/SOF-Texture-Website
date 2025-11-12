@@ -19,7 +19,7 @@ export default function BrowseTextures({ onViewTexture }: BrowseTexturesProps) {
   const [filterType, setFilterType] = useState<string[]>([]);
   const [filtersExpanded, setFiltersExpanded] = useState(true);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
 
   useEffect(() => {
     fetchTextures();
@@ -161,7 +161,7 @@ export default function BrowseTextures({ onViewTexture }: BrowseTexturesProps) {
               <div className="flex items-center gap-2 flex-1">
                 <button
                   onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                  className="p-2 text-gray-400 hover:text-gray-600 transition"
+                  className="p-2 text-gray-400 hover:text-gray-600 transition sm:hidden"
                   title={viewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
                 >
                   {viewMode === 'grid' ? <List className="w-5 h-5" /> : <Grid3X3 className="w-5 h-5" />}

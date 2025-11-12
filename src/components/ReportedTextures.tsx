@@ -160,7 +160,7 @@ export default function ReportedTextures({ onViewTexture }: ReportedTexturesProp
           <div className="flex items-center gap-2">
             <button
               onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-              className="p-2 text-gray-400 hover:text-gray-600 transition"
+              className="p-2 text-gray-400 hover:text-gray-600 transition sm:hidden"
               title={viewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
             >
               {viewMode === 'grid' ? <List className="w-5 h-5" /> : <Grid3X3 className="w-5 h-5" />}
