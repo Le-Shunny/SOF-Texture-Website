@@ -216,7 +216,7 @@ export default function ReportedTextures({ onViewTexture }: ReportedTexturesProp
                       </span>
                     </div>
                     <div>
-                      <span className="text-xs font-medium text-gray-500">ID:</span>
+                      <span className="text-xs font-medium text-gray-500">Report ID:</span>
                       <span className="ml-2 text-xs text-gray-700">
                         {report.id}
                       </span>

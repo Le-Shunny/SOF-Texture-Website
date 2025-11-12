@@ -183,13 +183,13 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
 
     const img = new Image();
     img.onload = () => {
-      if ((img.width === 2048 && img.height === 2048) || (img.width === 4096 && img.height === 4096)) {
+      if (img.width === img.height && img.width >= 2048 && img.width <= 4096) {
         setTextureFile(file);
         const reader = new FileReader();
         reader.onload = () => setTexturePreview(reader.result as string);
         reader.readAsDataURL(file);
       } else {
-        setError('Texture must be 2048x2048 or 4096x4096 pixels');
+        setError('Texture must be a 1:1 PNG between 2048x2048 and 4096x4096 pixels');
       }
     };
     img.src = URL.createObjectURL(file);
@@ -328,7 +328,7 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
           preview={texturePreview}
           clearFile={() => setTextureFile(null)}
           label="Texture File *"
-          description="(PNG - 2048x2048 or 4096x4096 only)"
+          description="(PNG, 1:1 2048x2048 to 4096x4096)"
         />
 
         <Dropzone

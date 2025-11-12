@@ -159,9 +159,7 @@ export default function UploadTexture() {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
-        const isValid =
-          (img.width === 2048 && img.height === 2048) ||
-          (img.width === 4096 && img.height === 4096);
+        const isValid = img.width === img.height && img.width >= 2048 && img.width <= 4096;
         resolve(isValid);
       };
       img.onerror = () => resolve(false);
@@ -186,7 +184,7 @@ export default function UploadTexture() {
 
     const isValidSize = await validateImageDimensions(file);
     if (!isValidSize) {
-      setError('Texture must be 2048x2048 or 4096x4096 pixels');
+      setError('Texture must be a 1:1 PNG between 2048x2048 and 4096x4096 pixels');
       return;
     }
 
@@ -323,7 +321,7 @@ export default function UploadTexture() {
           preview={texturePreview}
           clearFile={clearTextureFile}
           label="Texture File *"
-          description="(PNG, 2048x2048 or 4096x4096)"
+          description="(PNG, 1:1 2048x2048 to 4096x4096)"
         />
 
         <Dropzone
@@ -367,7 +365,7 @@ export default function UploadTexture() {
           <label htmlFor="author" className="block text-sm font-medium text-gray-700 mb-1">
             Author
             <span className="text-gray-500 text-xs ml-2">
-              (Leave empty to use your username or UUID)
+              (Leave empty to use your currrent username)
             </span>
           </label>
           <input
