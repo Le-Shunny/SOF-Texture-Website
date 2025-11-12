@@ -172,7 +172,7 @@ export default function BrowseTextures({ onViewTexture }: BrowseTexturesProps) {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="w-auto px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 >
                   <option value="relevance">Relevance</option>
                   <option value="newest">Newest First</option>
@@ -364,12 +364,6 @@ export default function BrowseTextures({ onViewTexture }: BrowseTexturesProps) {
 
                       {isAdmin && (
                         <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            onClick={() => onViewTexture(texture)}
-                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
                           <button
                             onClick={() => handleDelete(texture.id)}
                             className="p-1 text-red-600 hover:bg-red-50 rounded"
