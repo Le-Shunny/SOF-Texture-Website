@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase, Texture, Report } from '../lib/supabase';
-import { Eye, XCircle, AlertTriangle, Trash2 } from 'lucide-react';
+import { Eye, XCircle, AlertTriangle, Trash2, Grid3X3, List } from 'lucide-react';
 
 interface ReportWithTexture extends Report {
   texture: Texture | null;
@@ -15,6 +15,7 @@ export default function ReportedTextures({ onViewTexture }: ReportedTexturesProp
   const [reports, setReports] = useState<ReportWithTexture[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
 
   useEffect(() => {
     fetchReports();
@@ -156,13 +157,22 @@ export default function ReportedTextures({ onViewTexture }: ReportedTexturesProp
 
       {reports.length > 0 && (
         <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Search by Report UUID"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+              className="p-2 text-gray-400 hover:text-gray-600 transition"
+              title={viewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
+            >
+              {viewMode === 'grid' ? <List className="w-5 h-5" /> : <Grid3X3 className="w-5 h-5" />}
+            </button>
+            <input
+              type="text"
+              placeholder="Search by Report UUID"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
         </div>
       )}
 
@@ -171,7 +181,7 @@ export default function ReportedTextures({ onViewTexture }: ReportedTexturesProp
           No reports found.
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 gap-6" : "space-y-4"}>
           {filteredReports.map((report) => (
             <div
               key={report.id}
