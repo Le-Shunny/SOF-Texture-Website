@@ -145,7 +145,7 @@ export default function ReportedTextures({ onViewTexture }: ReportedTexturesProp
         {reports.length > 0 && (
           <button
             onClick={handleDismissAllReports}
-            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition"
+            className="flex items-center gap-2 px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition"
             title="Dismiss All Reports"
           >
             <XCircle className="w-4 h-4" />
@@ -177,9 +177,9 @@ export default function ReportedTextures({ onViewTexture }: ReportedTexturesProp
               key={report.id}
               className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition"
             >
-              <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex flex-col md:flex-row gap-4">
                 {report.texture && (
-                  <div className="w-full lg:w-48 flex-shrink-0">
+                  <div className="w-full md:w-48 flex-shrink-0">
                     <div className="aspect-[3/2] w-full">
                       <img
                         src={report.texture.thumbnail_url}
@@ -238,32 +238,32 @@ export default function ReportedTextures({ onViewTexture }: ReportedTexturesProp
                   {report.texture && (
                     <button
                       onClick={() => onViewTexture(report.texture!)}
-                      className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition"
+                      className="flex items-center justify-center gap-2 px-2 py-1 sm:px-4 sm:py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition"
                       title="View Texture"
                     >
                       <Eye className="w-4 h-4" />
-                      <span className="lg:hidden">View</span>
+                      <span className="md:hidden">View</span>
                     </button>
                   )}
 
                   {report.texture && (
                     <button
                       onClick={() => handleDeleteTexture(report.id, report.texture!)}
-                      className="flex items-center justify-center gap-2 px-4 py-2 bg-red-700 text-white rounded-md hover:bg-red-800 transition"
+                      className="flex items-center justify-center gap-2 px-2 py-1 sm:px-4 sm:py-2 bg-red-700 text-white rounded-md hover:bg-red-800 transition"
                       title="Delete Texture & Reports"
                     >
                       <Trash2 className="w-4 h-4" />
-                      <span className="lg:hidden">Delete Content</span>
+                      <span className="md:hidden">Delete Content</span>
                     </button>
                   )}
 
                   <button
                     onClick={() => handleDeleteReport(report.id)}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition"
+                    className="flex items-center justify-center gap-2 px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition"
                     title="Dismiss Report"
                   >
                     <XCircle className="w-4 h-4" />
-                    <span className="lg:hidden">Dismiss</span>
+                    <span className="md:hidden">Dismiss</span>
                   </button>
                 </div>
               </div>

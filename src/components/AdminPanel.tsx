@@ -182,38 +182,38 @@ export default function AdminPanel({ onViewTexture }: AdminPanelProps) {
                       <div className="flex sm:flex-col gap-2">
                         <button
                           onClick={() => onViewTexture(texture)}
-                          className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition"
+                          className="flex items-center justify-center gap-2 px-2 py-1 sm:px-4 sm:py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition"
                           title="View Details"
                         >
                           <Eye className="w-4 h-4" />
-                          <span className="md:hidden">View</span>
+                          <span className="sm:hidden">View</span>
                         </button>
 
                         <button
                           onClick={() => handleApprove(texture.id)}
-                          className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+                          className="flex items-center justify-center gap-2 px-2 py-1 sm:px-4 sm:py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
                           title="Approve"
                         >
                           <Check className="w-4 h-4" />
-                          <span className="md:hidden">Approve</span>
+                          <span className="sm:hidden">Approve</span>
                         </button>
 
                         <button
                           onClick={() => handleReject(texture.id)}
-                          className="flex items-center justify-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition"
+                          className="flex items-center justify-center gap-2 px-2 py-1 sm:px-4 sm:py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition"
                           title="Reject"
                         >
                           <X className="w-4 h-4" />
-                          <span className="md:hidden">Reject</span>
+                          <span className="sm:hidden">Reject</span>
                         </button>
 
                         <button
                           onClick={() => handleDelete(texture.id)}
-                          className="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
+                          className="flex items-center justify-center gap-2 px-2 py-1 sm:px-4 sm:py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
-                          <span className="md:hidden">Delete</span>
+                          <span className="sm:hidden">Delete</span>
                         </button>
                       </div>
                     </div>

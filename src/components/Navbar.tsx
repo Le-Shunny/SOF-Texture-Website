@@ -24,7 +24,7 @@ export default function Navbar({ onNavigate, currentPage }: NavbarProps) {
 
   return (
     <>
-      <nav className="bg-[#1f293b] shadow-md">
+      <nav className="bg-[#1f293b] shadow-md relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
@@ -137,7 +137,7 @@ export default function Navbar({ onNavigate, currentPage }: NavbarProps) {
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-t">
+          <div className="md:hidden bg-white border-t absolute top-full left-0 right-0 z-10 shadow-lg">
             <div className="px-2 pt-2 pb-3 space-y-1">
               <button
                 onClick={() => {
