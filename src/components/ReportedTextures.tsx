@@ -234,7 +234,7 @@ export default function ReportedTextures({ onViewTexture }: ReportedTexturesProp
                   </div>
                 </div>
 
-                <div className="flex lg:flex-col gap-2">
+                <div className="flex md:flex-col gap-2">
                   {report.texture && (
                     <button
                       onClick={() => onViewTexture(report.texture!)}

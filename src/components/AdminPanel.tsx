@@ -179,7 +179,7 @@ export default function AdminPanel({ onViewTexture }: AdminPanelProps) {
                         </p>
                       </div>
 
-                      <div className="flex md:flex-col gap-2">
+                      <div className="flex sm:flex-col gap-2">
                         <button
                           onClick={() => onViewTexture(texture)}
                           className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition"
