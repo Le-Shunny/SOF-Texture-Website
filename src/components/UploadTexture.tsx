@@ -128,7 +128,7 @@ function Dropzone({
 }
 
 export default function UploadTexture() {
-  const { user, profile, isCertifiedMaker } = useAuth();
+  const { user, profile, isTrusted } = useAuth();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -260,7 +260,7 @@ export default function UploadTexture() {
       const thumbnailUrl = await uploadFile(thumbnailFile, 'thumbnails');
 
       const authorName = profile?.username || user?.id || 'Anonymous';
-      const status = isCertifiedMaker ? 'approved' : 'pending';
+      const status = isTrusted ? 'approved' : 'pending';
 
       const { error: insertError } = await supabase.from('textures').insert({
         user_id: user?.id || null,
@@ -301,7 +301,7 @@ export default function UploadTexture() {
       {success && (
         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
           Texture uploaded successfully!{' '}
-          {!isCertifiedMaker && 'It will be reviewed by admins before being published.'}
+          {!isTrusted && 'It will be reviewed by admins before being published.'}
         </div>
       )}
 

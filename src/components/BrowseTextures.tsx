@@ -321,7 +321,7 @@ export default function BrowseTextures({ onViewTexture, onViewProfile }: BrowseT
               onClick={() => onViewTexture(texture)}
             >
               <div className="flex flex-col sm:flex-row">
-                <div className="w-full sm:w-48 flex-shrink-0 p-4">
+                <div className="w-full sm:w-52 flex-shrink-0 p-4">
                   <div className="aspect-[3/2] w-full">
                     <img
                       src={texture.thumbnail_url}

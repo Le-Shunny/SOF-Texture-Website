@@ -91,9 +91,9 @@ export default function Navbar({ onNavigate, currentPage, onViewProfile }: Navba
                       Admin
                     </span>
                   )}
-                  {profile?.rank === 'certified_maker' && (
+                  {profile?.rank === 'trusted' && (
                     <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-600 text-xs rounded">
-                      Certified
+                      Trusted
                     </span>
                   )}
                   <button
@@ -191,16 +191,16 @@ export default function Navbar({ onNavigate, currentPage, onViewProfile }: Navba
                   >
                     {profile?.username}
                   </button>
-                  {(profile?.rank === 'admin' || profile?.rank === 'certified_maker') && (
+                  {(profile?.rank === 'admin' || profile?.rank === 'trusted') && (
                     <div className="px-3 py-1">
                       {profile?.rank === 'admin' && (
                         <span className="px-2 py-0.5 bg-red-100 text-red-600 text-xs rounded">
                           Admin
                         </span>
                       )}
-                      {profile?.rank === 'certified_maker' && (
+                      {profile?.rank === 'trusted' && (
                         <span className="px-2 py-0.5 bg-green-100 text-green-600 text-xs rounded">
-                          Certified
+                          Trusted
                         </span>
                       )}
                     </div>

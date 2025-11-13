@@ -10,7 +10,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
-  isCertifiedMaker: boolean;
+  isTrusted: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -86,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const isAdmin = profile?.rank === 'admin';
-  const isCertifiedMaker = profile?.rank === 'certified_maker' || isAdmin;
+  const isTrusted = profile?.rank === 'trusted' || isAdmin;
 
   return (
     <AuthContext.Provider
@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signOut,
         isAdmin,
-        isCertifiedMaker,
+        isTrusted,
       }}
     >
       {children}

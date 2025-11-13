@@ -99,8 +99,8 @@ export default function ProfileView({ username, onNavigate, onViewTexture }: Pro
           {userRank === 'admin' && (
             <span className="px-2 py-1 bg-red-100 text-red-700 text-sm rounded">Admin</span>
           )}
-          {userRank === 'certified_maker' && (
-            <span className="px-2 py-1 bg-green-100 text-green-700 text-sm rounded">Trusted</span>
+          {userRank === 'trusted' && (
+            <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-600 text-xs rounded">Trusted</span>
           )}
           {userRank === 'regular' && (
             <span className="px-2 py-1 bg-gray-100 text-gray-700 text-sm rounded">Regular</span>
