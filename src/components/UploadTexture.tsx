@@ -136,7 +136,6 @@ export default function UploadTexture() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    author: '',
     aircraft: '',
     category: '',
     textureType: '',
@@ -260,7 +259,7 @@ export default function UploadTexture() {
       const textureUrl = await uploadFile(textureFile, 'textures');
       const thumbnailUrl = await uploadFile(thumbnailFile, 'thumbnails');
 
-      const authorName = formData.author || profile?.username || user?.id || 'Anonymous';
+      const authorName = profile?.username || user?.id || 'Anonymous';
       const status = isCertifiedMaker ? 'approved' : 'pending';
 
       const { error: insertError } = await supabase.from('textures').insert({
@@ -282,7 +281,6 @@ export default function UploadTexture() {
       setFormData({
         title: '',
         description: '',
-        author: '',
         aircraft: '',
         category: '',
         textureType: '',
@@ -361,22 +359,7 @@ export default function UploadTexture() {
           />
         </div>
 
-        <div>
-          <label htmlFor="author" className="block text-sm font-medium text-gray-700 mb-1">
-            Author
-            <span className="text-gray-500 text-xs ml-2">
-              (Leave empty to use your currrent username)
-            </span>
-          </label>
-          <input
-            id="author"
-            type="text"
-            value={formData.author}
-            onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder={user ? (profile?.username || user?.id || 'Unknown User') : 'Required for guest uploads'}
-          />
-        </div>
+
 
         <div>
           <label htmlFor="aircraft" className="block text-sm font-medium text-gray-700 mb-1">

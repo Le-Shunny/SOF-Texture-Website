@@ -5,12 +5,13 @@ import { Search, Download, Edit, Trash2, ThumbsUp, ThumbsDown, ArrowUpDown } fro
 
 interface BrowseTexturesProps {
   onViewTexture: (texture: Texture) => void;
+  onViewProfile: (username: string) => void;
 }
 
 type SortOption = 'relevance' | 'newest' | 'oldest' | 'updated_newest' | 'updated_oldest' | 'upvotes_high' | 'downvotes_high' | 'downloads_high' | 'downloads_low';
 
-export default function BrowseTextures({ onViewTexture }: BrowseTexturesProps) {
-  const { isAdmin } = useAuth();
+export default function BrowseTextures({ onViewTexture, onViewProfile }: BrowseTexturesProps) {
+  const { user, isAdmin } = useAuth();
   const [textures, setTextures] = useState<Texture[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -43,6 +44,11 @@ export default function BrowseTextures({ onViewTexture }: BrowseTexturesProps) {
 
     const texture = textures.find((t) => t.id === id);
     if (!texture) return;
+
+    if (!isAdmin && (!user || texture.user_id !== user.id)) {
+      alert('You can only delete your own textures.');
+      return;
+    }
 
     try {
       // Import the storage utility function
@@ -329,7 +335,18 @@ export default function BrowseTextures({ onViewTexture }: BrowseTexturesProps) {
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-gray-800 text-lg mb-1">{texture.title}</h3>
-                      <p className="text-sm text-gray-600 mb-2">by {texture.author}</p>
+                      <p className="text-sm text-gray-600 mb-2">
+                        by{' '}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onViewProfile(texture.author);
+                          }}
+                          className="text-blue-600 hover:text-blue-800 underline"
+                        >
+                          {texture.author}
+                        </button>
+                      </p>
                       
                       {texture.description && (
                         <p className="text-sm text-gray-600 mb-3 line-clamp-2">
@@ -362,7 +379,7 @@ export default function BrowseTextures({ onViewTexture }: BrowseTexturesProps) {
                         </div>
                       </div>
 
-                      {isAdmin && (
+                      {(isAdmin || (user && texture.user_id === user.id)) && (
                         <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => handleDelete(texture.id)}

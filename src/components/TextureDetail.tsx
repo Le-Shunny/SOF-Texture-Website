@@ -19,9 +19,10 @@ interface TextureDetailProps {
   texture: Texture;
   onClose: () => void;
   onEdit?: (texture: Texture) => void;
+  onViewProfile?: (username: string) => void;
 }
 
-export default function TextureDetail({ texture, onClose, onEdit }: TextureDetailProps) {
+export default function TextureDetail({ texture, onClose, onEdit, onViewProfile }: TextureDetailProps) {
   const { user, profile, isAdmin } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -273,7 +274,18 @@ export default function TextureDetail({ texture, onClose, onEdit }: TextureDetai
               <div className="space-y-4">
                 <div>
                   <h3 className="text-sm font-medium text-gray-500 mb-1">Author</h3>
-                  <p className="text-gray-800">{localTexture.author}</p>
+                  <p className="text-gray-800">
+                    {onViewProfile ? (
+                      <button
+                        onClick={() => onViewProfile(localTexture.author)}
+                        className="text-blue-600 hover:text-blue-800 underline"
+                      >
+                        {localTexture.author}
+                      </button>
+                    ) : (
+                      localTexture.author
+                    )}
+                  </p>
                 </div>
 
                 <div>

@@ -6,12 +6,14 @@ import UploadTexture from './components/UploadTexture';
 import TextureDetail from './components/TextureDetail';
 import EditTexture from './components/EditTexture';
 import AdminPanel from './components/AdminPanel';
+import ProfileView from './components/ProfileView';
 import { Texture } from './lib/supabase';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('browse');
   const [selectedTexture, setSelectedTexture] = useState<Texture | null>(null);
   const [editingTexture, setEditingTexture] = useState<Texture | null>(null);
+  const [profileUsername, setProfileUsername] = useState<string>('');
 
   useLayoutEffect(() => {
     if (currentPage !== 'edit') {
@@ -45,6 +47,11 @@ function App() {
     setEditingTexture(null);
   };
 
+  const handleViewProfile = (username: string) => {
+    setProfileUsername(username);
+    setCurrentPage('profile');
+  };
+
   return (
     <AuthProvider>
       <div className={`min-h-screen bg-gray-50 ${selectedTexture || editingTexture ? 'overflow-hidden' : ''}`}>
@@ -54,15 +61,18 @@ function App() {
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {currentPage === 'browse' && (
-            <BrowseTextures onViewTexture={handleViewTexture} />
+            <BrowseTextures onViewTexture={handleViewTexture} onViewProfile={handleViewProfile} />
           )}
           {currentPage === 'upload' && <UploadTexture />}
           {currentPage === 'edit' && editingTexture && <EditTexture texture={editingTexture} onUpdate={handleUpdateTexture} onNavigate={setCurrentPage} />}
           {currentPage === 'admin' && <AdminPanel onViewTexture={handleViewTexture} />}
+          {currentPage === 'profile' && profileUsername && (
+            <ProfileView username={profileUsername} onNavigate={setCurrentPage} onViewTexture={handleViewTexture} />
+          )}
         </main>
 
         {selectedTexture && (
-          <TextureDetail texture={selectedTexture} onClose={handleCloseDetail} onEdit={handleEditTexture} />
+          <TextureDetail texture={selectedTexture} onClose={handleCloseDetail} onEdit={handleEditTexture} onViewProfile={handleViewProfile} />
         )}
 
         {editingTexture && currentPage !== 'edit' && (

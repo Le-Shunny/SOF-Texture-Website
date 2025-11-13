@@ -79,19 +79,22 @@ export default function Navbar({ onNavigate, currentPage }: NavbarProps) {
 
               {user ? (
                 <div className="flex items-center space-x-3">
-                  <span className="text-sm text-white">
+                  <button
+                    onClick={() => setShowUserProfile(true)}
+                    className="text-sm text-white hover:text-blue-200 underline"
+                  >
                     {profile?.username}
-                    {profile?.rank === 'admin' && (
-                      <span className="ml-2 px-2 py-0.5 bg-orange-100 text-orange-600 text-xs rounded">
-                        Admin
-                      </span>
-                    )}
-                    {profile?.rank === 'certified_maker' && (
-                      <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-600 text-xs rounded">
-                        Certified
-                      </span>
-                    )}
-                  </span>
+                  </button>
+                  {profile?.rank === 'admin' && (
+                    <span className="ml-2 px-2 py-0.5 bg-orange-100 text-orange-600 text-xs rounded">
+                      Admin
+                    </span>
+                  )}
+                  {profile?.rank === 'certified_maker' && (
+                    <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-600 text-xs rounded">
+                      Certified
+                    </span>
+                  )}
                   <button
                     onClick={() => setShowUserProfile(true)}
                     className="flex items-center px-3 py-2 text-white hover:bg-gray-700 rounded-md transition"
@@ -178,19 +181,29 @@ export default function Navbar({ onNavigate, currentPage }: NavbarProps) {
 
               {user ? (
                 <div className="border-t pt-2 mt-2">
-                  <div className="px-3 py-2 text-sm text-gray-600">
+                  <button
+                    onClick={() => {
+                      setShowUserProfile(true);
+                      setMobileMenuOpen(false);
+                    }}
+                    className="px-3 py-2 text-sm text-gray-600 hover:text-blue-600 underline"
+                  >
                     {profile?.username}
-                    {profile?.rank === 'admin' && (
-                      <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-600 text-xs rounded">
-                        Admin
-                      </span>
-                    )}
-                    {profile?.rank === 'certified_maker' && (
-                      <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-600 text-xs rounded">
-                        Certified
-                      </span>
-                    )}
-                  </div>
+                  </button>
+                  {(profile?.rank === 'admin' || profile?.rank === 'certified_maker') && (
+                    <div className="px-3 py-1">
+                      {profile?.rank === 'admin' && (
+                        <span className="px-2 py-0.5 bg-red-100 text-red-600 text-xs rounded">
+                          Admin
+                        </span>
+                      )}
+                      {profile?.rank === 'certified_maker' && (
+                        <span className="px-2 py-0.5 bg-green-100 text-green-600 text-xs rounded">
+                          Certified
+                        </span>
+                      )}
+                    </div>
+                  )}
                   <button
                     onClick={() => {
                       setShowUserProfile(true);

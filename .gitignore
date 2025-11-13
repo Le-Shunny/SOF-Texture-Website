@@ -22,3 +22,6 @@ dist-ssr
 *.sw?
 .env
 .replit
+.zencoder/rules/repo.md
+.zencoder/*
+-p

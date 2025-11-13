@@ -56,6 +56,7 @@ interface DropzoneProps {
 
 const Dropzone: React.FC<DropzoneProps> = ({ onDrop, accept, file, preview, clearFile, label, description }) => {
   const [isMobile, setIsMobile] = useState(false);
+  const { profile } = useAuth();
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -131,7 +132,7 @@ interface EditTextureProps {
 }
 
 export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: EditTextureProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -140,7 +141,6 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
   const [formData, setFormData] = useState({
     title: texture.title,
     description: texture.description,
-    author: texture.author,
     aircraft: texture.aircraft,
     category: texture.category,
     textureType: texture.texture_type,
@@ -256,7 +256,7 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
         .update({
           title: formData.title,
           description: formData.description,
-          author: formData.author,
+          author: profile?.username || 'Anonymous',
           aircraft: formData.aircraft,
           category: formData.category,
           texture_type: formData.textureType,
@@ -368,19 +368,7 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
           />
         </div>
 
-        <div>
-          <label htmlFor="author" className="block text-sm font-medium text-gray-700 mb-1">
-            Author *
-          </label>
-          <input
-            id="author"
-            type="text"
-            value={formData.author}
-            onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
+
 
         <div>
           <label htmlFor="aircraft" className="block text-sm font-medium text-gray-700 mb-1">
