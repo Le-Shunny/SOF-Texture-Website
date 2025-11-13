@@ -11,7 +11,7 @@
   Extends auth.users with additional profile information
   - `id` (uuid, references auth.users) - Primary key
   - `username` (text, unique) - Display name for the user
-  - `rank` (text) - User rank: 'admin', 'certified_maker', 'regular'
+  - `rank` (text) - User rank: 'admin', 'trusted', 'regular'
   - `created_at` (timestamptz) - Account creation timestamp
   - `updated_at` (timestamptz) - Last profile update timestamp
 
@@ -83,7 +83,7 @@
 
   ## Important Notes
   - Guest uploads (user_id is null) automatically set status to 'pending'
-  - Certified makers and admins have auto-approved textures via application logic
+  - Trusted users and admins have auto-approved textures via application logic
   - Vote counts are denormalized in textures table for performance
   - All timestamps use timestamptz for proper timezone handling
 */
@@ -92,7 +92,7 @@
 CREATE TABLE IF NOT EXISTS profiles (
   id uuid PRIMARY KEY REFERENCES auth.users ON DELETE CASCADE,
   username text UNIQUE NOT NULL,
-  rank text NOT NULL DEFAULT 'regular' CHECK (rank IN ('admin', 'certified_maker', 'regular')),
+  rank text NOT NULL DEFAULT 'regular' CHECK (rank IN ('admin', 'trusted', 'regular')),
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
