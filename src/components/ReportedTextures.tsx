@@ -241,8 +241,7 @@ export default function ReportedTextures({ onViewTexture }: ReportedTexturesProp
                       className="flex items-center justify-center gap-2 px-2 py-1 sm:px-4 sm:py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition"
                       title="View Texture"
                     >
-                      <Eye className="w-4 h-4" />
-                      <span className="md:hidden">View</span>
+                      <Eye className="w-4 h-4" />View Texture
                     </button>
                   )}
 
@@ -252,8 +251,7 @@ export default function ReportedTextures({ onViewTexture }: ReportedTexturesProp
                       className="flex items-center justify-center gap-2 px-2 py-1 sm:px-4 sm:py-2 bg-red-700 text-white rounded-md hover:bg-red-800 transition"
                       title="Delete Texture & Reports"
                     >
-                      <Trash2 className="w-4 h-4" />
-                      <span className="md:hidden">Delete Content</span>
+                      <Trash2 className="w-4 h-4" />Delete Texture
                     </button>
                   )}
 
@@ -262,8 +260,7 @@ export default function ReportedTextures({ onViewTexture }: ReportedTexturesProp
                     className="flex items-center justify-center gap-2 px-2 py-1 sm:px-4 sm:py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
                     title="Dismiss Report"
                   >
-                    <Check className="w-4 h-4" />
-                    <span className="md:hidden">Dismiss</span>
+                    <Check className="w-4 h-4" />Dismiss Report
                   </button>
                 </div>
               </div>
