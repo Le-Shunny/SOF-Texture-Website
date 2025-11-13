@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase, Texture } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ThumbsUp, ThumbsDown, Trash2 } from 'lucide-react';
 
 interface ProfileViewProps {
   username: string;
@@ -10,7 +10,7 @@ interface ProfileViewProps {
 }
 
 export default function ProfileView({ username, onNavigate, onViewTexture }: ProfileViewProps) {
-  const { profile } = useAuth();
+  const { profile, user, isAdmin } = useAuth();
   const [textures, setTextures] = useState<Texture[]>([]);
   const [loading, setLoading] = useState(true);
   const [userRank, setUserRank] = useState<string>('regular');
@@ -45,6 +45,33 @@ export default function ProfileView({ username, onNavigate, onViewTexture }: Pro
       setTextures(data);
     }
     setLoading(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this texture? This will also delete the associated files.')) return;
+
+    const texture = textures.find((t) => t.id === id);
+    if (!texture) return;
+
+    if (!isAdmin && (!user || texture.user_id !== user.id)) {
+      alert('You can only delete your own textures.');
+      return;
+    }
+
+    try {
+      // Import the storage utility function
+      const { deleteTextureCompletely } = await import('../lib/storageUtils');
+
+      await deleteTextureCompletely(id, texture.texture_url, texture.thumbnail_url);
+
+      // Remove from local state
+      setTextures(textures.filter((t) => t.id !== id));
+
+      alert('Texture and associated files deleted successfully!');
+    } catch (error) {
+      console.error('Failed to delete texture:', error);
+      alert('Failed to delete texture. Please try again.');
+    }
   };
 
   if (loading) {
@@ -127,6 +154,30 @@ export default function ProfileView({ username, onNavigate, onViewTexture }: Pro
                           {texture.texture_type}
                         </span>
                       </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 mt-2 sm:mt-0">
+                      <div className="flex items-center gap-3 text-sm text-gray-600">
+                        <div className="flex items-center gap-1">
+                          <ThumbsUp className="w-4 h-4" />
+                          <span>{texture.upvotes}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <ThumbsDown className="w-4 h-4" />
+                          <span>{texture.downvotes}</span>
+                        </div>
+                      </div>
+
+                      {(isAdmin || (user && texture.user_id === user.id)) && (
+                        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => handleDelete(texture.id)}
+                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

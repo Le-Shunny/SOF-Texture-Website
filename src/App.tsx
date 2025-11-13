@@ -57,7 +57,7 @@ function App() {
       <div className={`min-h-screen bg-gray-50 ${selectedTexture || editingTexture ? 'overflow-hidden' : ''}`}>
         <div id="top-ad-placeholder" className="w-full h-0 bg-transparent" />
 
-        <Navbar onNavigate={setCurrentPage} currentPage={currentPage} onViewTexture={handleViewTexture} />
+        <Navbar onNavigate={setCurrentPage} currentPage={currentPage} onViewProfile={handleViewProfile} />
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {currentPage === 'browse' && (

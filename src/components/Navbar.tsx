@@ -4,20 +4,18 @@ import { Menu, X, Upload, Search, User, LogOut, Shield, Settings } from 'lucide-
 import Login from './Login';
 import Register from './Register';
 import UserProfile from './UserProfile';
-import UserProfileView from './UserProfileView';
 
 interface NavbarProps {
   onNavigate: (page: string) => void;
   currentPage: string;
-  onViewTexture?: (texture: any) => void;
+  onViewProfile?: (username: string) => void;
 }
 
-export default function Navbar({ onNavigate, currentPage, onViewTexture }: NavbarProps) {
+export default function Navbar({ onNavigate, currentPage, onViewProfile }: NavbarProps) {
   const { user, profile, signOut, isAdmin } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
-  const [showUserProfileView, setShowUserProfileView] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -83,7 +81,7 @@ export default function Navbar({ onNavigate, currentPage, onViewTexture }: Navba
               {user ? (
                 <div className="flex items-center space-x-3">
                   <button
-                    onClick={() => setShowUserProfileView(true)}
+                    onClick={() => onViewProfile && profile?.username && onViewProfile(profile.username)}
                     className="text-sm text-white hover:text-blue-200 underline"
                   >
                     {profile?.username}
@@ -186,7 +184,7 @@ export default function Navbar({ onNavigate, currentPage, onViewTexture }: Navba
                 <div className="border-t pt-2 mt-2">
                   <button
                     onClick={() => {
-                      setShowUserProfileView(true);
+                      onViewProfile && profile?.username && onViewProfile(profile.username);
                       setMobileMenuOpen(false);
                     }}
                     className="px-3 py-2 text-sm text-gray-600 hover:text-blue-600 underline"
@@ -274,13 +272,6 @@ export default function Navbar({ onNavigate, currentPage, onViewTexture }: Navba
 
       {showUserProfile && (
         <UserProfile onClose={() => setShowUserProfile(false)} />
-      )}
-
-      {showUserProfileView && onViewTexture && (
-        <UserProfileView
-          onClose={() => setShowUserProfileView(false)}
-          onViewTexture={onViewTexture}
-        />
       )}
     </>
   );
