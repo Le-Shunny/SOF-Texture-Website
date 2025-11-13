@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase, Texture, Report } from '../lib/supabase';
-import { Eye, XCircle, AlertTriangle, Trash2 } from 'lucide-react';
+import { Check, Eye, XCircle, AlertTriangle, Trash2 } from 'lucide-react';
 
 interface ReportWithTexture extends Report {
   texture: Texture | null;
@@ -148,7 +148,7 @@ export default function ReportedTextures({ onViewTexture }: ReportedTexturesProp
             className="flex items-center gap-2 px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition"
             title="Dismiss All Reports"
           >
-            <XCircle className="w-4 h-4" />
+            <Check className="w-4 h-4" />
             Dismiss All
           </button>
         )}
@@ -259,10 +259,10 @@ export default function ReportedTextures({ onViewTexture }: ReportedTexturesProp
 
                   <button
                     onClick={() => handleDeleteReport(report.id)}
-                    className="flex items-center justify-center gap-2 px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition"
+                    className="flex items-center justify-center gap-2 px-2 py-1 sm:px-4 sm:py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
                     title="Dismiss Report"
                   >
-                    <XCircle className="w-4 h-4" />
+                    <Check className="w-4 h-4" />
                     <span className="md:hidden">Dismiss</span>
                   </button>
                 </div>
