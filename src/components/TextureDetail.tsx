@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase, Texture, Comment, Vote } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { formatNumber } from '../lib/utils';
 import {
   X,
   Download,
@@ -321,7 +322,7 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
                   <h3 className="text-sm font-medium text-gray-500 mb-1">Downloads</h3>
                   <p className="text-gray-800 flex items-center gap-2">
                     <Download className="w-4 h-4" />
-                    {localTexture.download_count}
+                    {formatNumber(localTexture.download_count)}
                   </p>
                 </div>
 
