@@ -342,7 +342,7 @@ export default function BrowseTextures({ onViewTexture, onViewProfile }: BrowseT
                             e.stopPropagation();
                             onViewProfile(texture.author);
                           }}
-                          className="text-blue-600 hover:text-blue-800 underline"
+                          className="text-blue-600 hover:text-blue-800"
                         >
                           {texture.author}
                         </button>
