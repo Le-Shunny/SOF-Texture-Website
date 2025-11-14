@@ -73,6 +73,7 @@ export interface Pack {
   status: 'pending' | 'approved' | 'rejected';
   upvotes: number;
   downvotes: number;
+  texture_ids: string[];
   created_at: string;
   updated_at: string;
 }

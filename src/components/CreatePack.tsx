@@ -221,14 +221,12 @@ export default function CreatePack() {
 
       if (packError) throw packError;
 
-      const packTexturesData = selectedTextures.map(texture => ({
-        pack_id: packData.id,
-        texture_id: texture.id,
-      }));
+      const textureIds = selectedTextures.map(texture => texture.id);
 
       const { error: texturesError } = await supabase
-        .from('pack_textures')
-        .insert(packTexturesData);
+        .from('packs')
+        .update({ texture_ids: textureIds })
+        .eq('id', packData.id);
 
       if (texturesError) throw texturesError;
 

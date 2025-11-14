@@ -27,22 +27,14 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
     setLoading(true);
 
     // Fetch textures in pack
-    const { data: packTexturesData, error: texturesError } = await supabase
-      .from('pack_textures')
-      .select('texture_id')
-      .eq('pack_id', pack.id);
+    if (pack.texture_ids && pack.texture_ids.length > 0) {
+      const { data: texturesData, error: texError } = await supabase
+        .from('textures')
+        .select('*')
+        .in('id', pack.texture_ids);
 
-    if (!texturesError && packTexturesData) {
-      const textureIds = packTexturesData.map(pt => pt.texture_id);
-      if (textureIds.length > 0) {
-        const { data: texturesData, error: texError } = await supabase
-          .from('textures')
-          .select('*')
-          .in('id', textureIds);
-
-        if (!texError && texturesData) {
-          setTextures(texturesData);
-        }
+      if (!texError && texturesData) {
+        setTextures(texturesData);
       }
     }
 
