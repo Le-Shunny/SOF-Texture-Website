@@ -16,6 +16,7 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
   const [comments, setComments] = useState<PackComment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [userVote, setUserVote] = useState<PackVote | null>(null);
+  const [localPack, setLocalPack] = useState(pack);
   const [loading, setLoading] = useState(true);
   const [downloadingPack, setDownloadingPack] = useState(false);
 
@@ -67,65 +68,67 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
   };
 
   const handleVote = async (voteType: 'upvote' | 'downvote') => {
-    if (!user) return;
+    if (!user) {
+      alert('Please login to vote');
+      return;
+    }
+
+    setLoading(true);
 
     try {
       if (userVote) {
         if (userVote.vote_type === voteType) {
-          // Remove vote
           await supabase.from('pack_votes').delete().eq('id', userVote.id);
           setUserVote(null);
-          // Update pack votes
-          const updateField = voteType === 'upvote' ? 'upvotes' : 'downvotes';
-          await supabase
-            .from('packs')
-            .update({ [updateField]: pack[updateField] - 1 })
-            .eq('id', pack.id);
-          pack[updateField] -= 1;
+
+          setLocalPack({
+            ...localPack,
+            upvotes: voteType === 'upvote' ? localPack.upvotes - 1 : localPack.upvotes,
+            downvotes:
+              voteType === 'downvote' ? localPack.downvotes - 1 : localPack.downvotes,
+          });
         } else {
-          // Change vote
           await supabase
             .from('pack_votes')
             .update({ vote_type: voteType })
             .eq('id', userVote.id);
+
           setUserVote({ ...userVote, vote_type: voteType });
-          // Update counts
-          const oldField = userVote.vote_type === 'upvote' ? 'upvotes' : 'downvotes';
-          const newField = voteType === 'upvote' ? 'upvotes' : 'downvotes';
-          await supabase
-            .from('packs')
-            .update({
-              [oldField]: pack[oldField] - 1,
-              [newField]: pack[newField] + 1
-            })
-            .eq('id', pack.id);
-          pack[oldField] -= 1;
-          pack[newField] += 1;
+
+          setLocalPack({
+            ...localPack,
+            upvotes:
+              voteType === 'upvote' ? localPack.upvotes + 1 : localPack.upvotes - 1,
+            downvotes:
+              voteType === 'downvote' ? localPack.downvotes + 1 : localPack.downvotes - 1,
+          });
         }
       } else {
-        // Add vote
         const { data, error } = await supabase
           .from('pack_votes')
           .insert({
             pack_id: pack.id,
             user_id: user.id,
-            vote_type: voteType
+            vote_type: voteType,
           })
           .select()
           .single();
 
         if (!error && data) {
           setUserVote(data);
-          const updateField = voteType === 'upvote' ? 'upvotes' : 'downvotes';
-          await supabase
-            .from('packs')
-            .update({ [updateField]: pack[updateField] + 1 })
-            .eq('id', pack.id);
-          pack[updateField] += 1;
+
+          setLocalPack({
+            ...localPack,
+            upvotes: voteType === 'upvote' ? localPack.upvotes + 1 : localPack.upvotes,
+            downvotes:
+              voteType === 'downvote' ? localPack.downvotes + 1 : localPack.downvotes,
+          });
         }
       }
     } catch (error) {
       console.error('Error voting:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -239,28 +242,31 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
                 {pack.author}
               </button>
             </div>
-            <div className="flex items-center space-x-4 mb-6">
+            <div className="flex items-center gap-4 pt-4">
               <button
                 onClick={() => handleVote('upvote')}
-                className={`flex items-center space-x-1 px-3 py-1 rounded ${
+                disabled={loading}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${
                   userVote?.vote_type === 'upvote'
-                    ? 'bg-green-100 text-green-600'
-                    : 'hover:bg-gray-100'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-gray-100 text-gray-700 hover:bg-green-50'
                 }`}
               >
-                <ThumbsUp className="w-4 h-4" />
-                <span>{pack.upvotes}</span>
+                <ThumbsUp className="w-5 h-5" />
+                <span>{localPack.upvotes}</span>
               </button>
+
               <button
                 onClick={() => handleVote('downvote')}
-                className={`flex items-center space-x-1 px-3 py-1 rounded ${
+                disabled={loading}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${
                   userVote?.vote_type === 'downvote'
-                    ? 'bg-red-100 text-red-600'
-                    : 'hover:bg-gray-100'
+                    ? 'bg-red-100 text-red-700'
+                    : 'bg-gray-100 text-gray-700 hover:bg-red-50'
                 }`}
               >
-                <ThumbsDown className="w-4 h-4" />
-                <span>{pack.downvotes}</span>
+                <ThumbsDown className="w-5 h-5" />
+                <span>{localPack.downvotes}</span>
               </button>
               <button
                 onClick={downloadPack}
