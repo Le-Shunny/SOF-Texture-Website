@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react';
-import { supabase, Texture } from '../lib/supabase';
+import { supabase, Texture, Pack } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Search, Download, Edit, Trash2, ThumbsUp, ThumbsDown, ArrowUpDown } from 'lucide-react';
+import { Search, Download, Edit, Trash2, ThumbsUp, ThumbsDown, ArrowUpDown, User } from 'lucide-react';
 
 interface BrowseTexturesProps {
   onViewTexture: (texture: Texture) => void;
+  onViewPack: (pack: Pack) => void;
   onViewProfile: (username: string) => void;
 }
 
 type SortOption = 'relevance' | 'newest' | 'oldest' | 'updated_newest' | 'updated_oldest' | 'upvotes_high' | 'downvotes_high' | 'downloads_high' | 'downloads_low';
 
-export default function BrowseTextures({ onViewTexture, onViewProfile }: BrowseTexturesProps) {
+export default function BrowseTextures({ onViewTexture, onViewPack, onViewProfile }: BrowseTexturesProps) {
   const { user, isAdmin } = useAuth();
   const [textures, setTextures] = useState<Texture[]>([]);
+  const [packs, setPacks] = useState<Pack[]>([]);
+  const [contentType, setContentType] = useState<'textures' | 'packs'>('textures');
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAircraft, setFilterAircraft] = useState<string[]>([]);
@@ -22,8 +25,12 @@ export default function BrowseTextures({ onViewTexture, onViewProfile }: BrowseT
   const [sortBy, setSortBy] = useState<SortOption>('newest');
 
   useEffect(() => {
-    fetchTextures();
-  }, []);
+    if (contentType === 'textures') {
+      fetchTextures();
+    } else {
+      fetchPacks();
+    }
+  }, [contentType]);
 
   const fetchTextures = async () => {
     setLoading(true);
@@ -35,6 +42,20 @@ export default function BrowseTextures({ onViewTexture, onViewProfile }: BrowseT
 
     if (!error && data) {
       setTextures(data);
+    }
+    setLoading(false);
+  };
+
+  const fetchPacks = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('packs')
+      .select('*')
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setPacks(data);
     }
     setLoading(false);
   };
@@ -129,6 +150,51 @@ export default function BrowseTextures({ onViewTexture, onViewProfile }: BrowseT
     }
   });
 
+  const filteredPacks = packs.filter((pack) => {
+    if (isUUIDSearch(searchTerm)) {
+      return pack.id.toLowerCase() === searchTerm.trim().toLowerCase();
+    }
+
+    const matchesSearch =
+      pack.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pack.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pack.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pack.id.toLowerCase().includes(searchTerm.toLowerCase());
+
+    return matchesSearch;
+  });
+
+  const sortedPacks = [...filteredPacks].sort((a, b) => {
+    switch (sortBy) {
+      case 'relevance':
+        return calculatePackRelevance(b, searchTerm) - calculatePackRelevance(a, searchTerm);
+      case 'newest':
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      case 'oldest':
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case 'upvotes_high':
+        return b.upvotes - a.upvotes;
+      case 'downvotes_high':
+        return b.downvotes - a.downvotes;
+      default:
+        return 0;
+    }
+  });
+
+  const calculatePackRelevance = (pack: Pack, term: string): number => {
+    if (!term) return 0;
+    const lowerTerm = term.toLowerCase();
+    let score = 0;
+
+    if (pack.title.toLowerCase().includes(lowerTerm)) {
+      score += pack.title.toLowerCase() === lowerTerm ? 100 : 50;
+    }
+    if (pack.author.toLowerCase().includes(lowerTerm)) score += 30;
+    if (pack.description.toLowerCase().includes(lowerTerm)) score += 10;
+
+    return score;
+  };
+
   const aircraftOptions = Array.from(new Set(textures.map((t) => t.aircraft))).sort();
   const categoryOptions = Array.from(new Set(textures.map((t) => t.category))).sort();
   const typeOptions = Array.from(new Set(textures.map((t) => t.texture_type))).sort();
@@ -150,7 +216,7 @@ export default function BrowseTextures({ onViewTexture, onViewProfile }: BrowseT
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="text-gray-500">Loading textures...</div>
+        <div className="text-gray-500">Loading {contentType}...</div>
       </div>
     );
   }
@@ -158,10 +224,32 @@ export default function BrowseTextures({ onViewTexture, onViewProfile }: BrowseT
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">Browse Textures</h1>
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">Browse {contentType === 'textures' ? 'Textures' : 'Packs'}</h1>
 
         <div className="bg-white rounded-lg shadow-md">
           <div className="p-4 border-b border-gray-200">
+            <div className="flex mb-4">
+              <button
+                onClick={() => setContentType('textures')}
+                className={`px-4 py-2 rounded-l-md ${
+                  contentType === 'textures'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Textures
+              </button>
+              <button
+                onClick={() => setContentType('packs')}
+                className={`px-4 py-2 rounded-r-md ${
+                  contentType === 'packs'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Packs
+              </button>
+            </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-2 flex-1">
                 <Search className="w-5 h-5 text-gray-400" />
@@ -191,24 +279,26 @@ export default function BrowseTextures({ onViewTexture, onViewProfile }: BrowseT
                   <option value="downloads_low">Least Downloaded</option>
                 </select>
               </div>
-              <button
-                onClick={() => setFiltersExpanded(!filtersExpanded)}
-                className="ml-4 flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
-              >
-                <span>Filters</span>
-                <svg
-                  className={`w-4 h-4 transition-transform ${filtersExpanded ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              {contentType === 'textures' && (
+                <button
+                  onClick={() => setFiltersExpanded(!filtersExpanded)}
+                  className="ml-4 flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
+                  <span>Filters</span>
+                  <svg
+                    className={`w-4 h-4 transition-transform ${filtersExpanded ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              ) }
             </div>
           </div>
 
-          {filtersExpanded && (
+          {filtersExpanded && contentType === 'textures' && (
             <div className="p-4 space-y-4">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div>
@@ -221,7 +311,7 @@ export default function BrowseTextures({ onViewTexture, onViewProfile }: BrowseT
                       >
                         Clear
                       </button>
-                    )}
+                    ) }
                   </div>
                   <div className="max-h-32 overflow-y-auto space-y-1 border border-gray-200 rounded-md p-2">
                     {aircraftOptions.map((aircraft) => (
@@ -248,7 +338,7 @@ export default function BrowseTextures({ onViewTexture, onViewProfile }: BrowseT
                       >
                         Clear
                       </button>
-                    )}
+                    ) }
                   </div>
                   <div className="max-h-32 overflow-y-auto space-y-1 border border-gray-200 rounded-md p-2">
                     {categoryOptions.map((category) => (
@@ -275,7 +365,7 @@ export default function BrowseTextures({ onViewTexture, onViewProfile }: BrowseT
                       >
                         Clear
                       </button>
-                    )}
+                    ) }
                   </div>
                   <div className="max-h-32 overflow-y-auto space-y-1 border border-gray-200 rounded-md p-2">
                     {typeOptions.map((type) => (
@@ -302,19 +392,19 @@ export default function BrowseTextures({ onViewTexture, onViewProfile }: BrowseT
                     Clear All Filters
                   </button>
                 </div>
-              )}
+              ) }
             </div>
-          )}
+          ) }
         </div>
       </div>
 
-      {sortedTextures.length === 0 ? (
+      {(contentType === 'textures' ? sortedTextures : sortedPacks).length === 0 ? (
         <div className="text-center py-12 text-gray-500">
-          No textures found. Try adjusting your filters or search terms.
+          No {contentType} found. Try adjusting your filters or search terms.
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4">
-          {sortedTextures.map((texture) => (
+          {contentType === 'textures' && sortedTextures.map((texture) => (
             <div
               key={texture.id}
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer"
@@ -334,61 +424,112 @@ export default function BrowseTextures({ onViewTexture, onViewProfile }: BrowseT
                 <div className="flex-1 p-4">
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-800 text-lg mb-1">{texture.title}</h3>
-                      <p className="text-sm text-gray-600 mb-2">
-                        by{' '}
+                      <h3 className="text-lg font-semibold text-gray-900 truncate">{texture.title}</h3>
+                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">{texture.description}</p>
+                      <div className="flex items-center mt-2">
+                        <User className="w-4 h-4 mr-1" />
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             onViewProfile(texture.author);
                           }}
-                          className="text-blue-600 hover:text-blue-800"
+                          className="text-blue-600 hover:underline text-sm"
                         >
                           {texture.author}
                         </button>
-                      </p>
-                      
-                      {texture.description && (
-                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                          {texture.description}
-                        </p>
-                      )}
-
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
-                          {texture.aircraft}
-                        </span>
-                        <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                          {texture.category}
-                        </span>
-                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">
-                          {texture.texture_type}
-                        </span>
+                      </div>
+                      <div className="flex items-center mt-2 text-sm text-gray-500">
+                        <span>{texture.aircraft}</span>
+                        <span className="mx-2">•</span>
+                        <span>{texture.category}</span>
+                        <span className="mx-2">•</span>
+                        <span>{texture.texture_type}</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4 mt-2 sm:mt-0">
-                      <div className="flex items-center gap-3 text-sm text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <ThumbsUp className="w-4 h-4" />
-                          <span>{texture.upvotes}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <ThumbsDown className="w-4 h-4" />
-                          <span>{texture.downvotes}</span>
-                        </div>
+                    <div className="flex items-center space-x-4 mt-4 sm:mt-0">
+                      <div className="flex items-center space-x-1">
+                        <ThumbsUp className="w-4 h-4 text-green-600" />
+                        <span className="text-sm text-gray-600">{texture.upvotes}</span>
                       </div>
+                      <div className="flex items-center space-x-1">
+                        <ThumbsDown className="w-4 h-4 text-red-600" />
+                        <span className="text-sm text-gray-600">{texture.downvotes}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Download className="w-4 h-4 text-blue-600" />
+                        <span className="text-sm text-gray-600">{texture.download_count}</span>
+                      </div>
+                    </div>
+                  </div>
 
-                      {(isAdmin || (user && texture.user_id === user.id)) && (
-                        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            onClick={() => handleDelete(texture.id)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )}
+                  {(isAdmin || (user && texture.user_id === user.id)) && (
+                    <div className="flex gap-2 mt-4" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => onViewTexture(texture)}
+                        className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(texture.id)}
+                        className="flex items-center gap-2 px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </button>
+                    </div>
+                  ) }
+                </div>
+              </div>
+            </div>
+          )) }
+          {contentType === 'packs' && sortedPacks.map((pack) => (
+            <div
+              key={pack.id}
+              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer"
+              onClick={() => onViewPack(pack)}
+            >
+              <div className="flex flex-col sm:flex-row">
+                <div className="w-full sm:w-52 flex-shrink-0 p-4">
+                  <div className="aspect-[3/2] w-full">
+                    <img
+                      src={pack.thumbnail_url}
+                      alt={pack.title}
+                      className="w-full h-full object-cover rounded"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex-1 p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-semibold text-gray-900 truncate">{pack.title}</h3>
+                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">{pack.description}</p>
+                      <div className="flex items-center mt-2">
+                        <User className="w-4 h-4 mr-1" />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onViewProfile(pack.author);
+                          }}
+                          className="text-blue-600 hover:underline text-sm"
+                        >
+                          {pack.author}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-4 mt-4 sm:mt-0">
+                      <div className="flex items-center space-x-1">
+                        <ThumbsUp className="w-4 h-4 text-green-600" />
+                        <span className="text-sm text-gray-600">{pack.upvotes}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <ThumbsDown className="w-4 h-4 text-red-600" />
+                        <span className="text-sm text-gray-600">{pack.downvotes}</span>
+                      </div>
                     </div>
                   </div>
                 </div>

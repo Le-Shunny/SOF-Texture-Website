@@ -62,3 +62,35 @@ export interface Report {
   created_at: string;
   updated_at: string;
 }
+
+export interface Pack {
+  id: string;
+  user_id: string | null;
+  title: string;
+  description: string;
+  author: string;
+  thumbnail_url: string;
+  status: 'pending' | 'approved' | 'rejected';
+  upvotes: number;
+  downvotes: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PackComment {
+  id: string;
+  pack_id: string;
+  user_id: string | null;
+  author_name: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PackVote {
+  id: string;
+  pack_id: string;
+  user_id: string;
+  vote_type: 'upvote' | 'downvote';
+  created_at: string;
+}

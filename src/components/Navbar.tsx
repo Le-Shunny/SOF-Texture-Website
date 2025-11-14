@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Menu, X, Upload, Search, User, LogOut, Shield, Settings } from 'lucide-react';
+import { Menu, X, Upload, Search, User, LogOut, Shield, Settings, Package } from 'lucide-react';
 import Login from './Login';
 import Register from './Register';
 import UserProfile from './UserProfile';
@@ -61,6 +61,20 @@ export default function Navbar({ onNavigate, currentPage, onViewProfile }: Navba
                 >
                   <Upload className="w-5 h-5 mr-2" />
                   Upload
+                </button>
+              )}
+
+              {user && (
+                <button
+                  onClick={() => onNavigate('create-pack')}
+                  className={`flex items-center px-3 py-2 rounded-md transition ${
+                    currentPage === 'create-pack'
+                      ? 'bg-blue-100 text-blue-600'
+                      : 'text-white hover:bg-gray-700'
+                  }`}
+                >
+                  <Package className="w-5 h-5 mr-2" />
+                  Create Pack
                 </button>
               )}
 

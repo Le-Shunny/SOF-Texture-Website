@@ -7,11 +7,14 @@ import TextureDetail from './components/TextureDetail';
 import EditTexture from './components/EditTexture';
 import AdminPanel from './components/AdminPanel';
 import ProfileView from './components/ProfileView';
-import { Texture } from './lib/supabase';
+import CreatePack from './components/CreatePack';
+import PackDetail from './components/PackDetail';
+import { Texture, Pack } from './lib/supabase';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('browse');
   const [selectedTexture, setSelectedTexture] = useState<Texture | null>(null);
+  const [selectedPack, setSelectedPack] = useState<Pack | null>(null);
   const [editingTexture, setEditingTexture] = useState<Texture | null>(null);
   const [profileUsername, setProfileUsername] = useState<string>('');
 
@@ -25,8 +28,13 @@ function App() {
     setSelectedTexture(texture);
   };
 
+  const handleViewPack = (pack: Pack) => {
+    setSelectedPack(pack);
+  };
+
   const handleCloseDetail = () => {
     setSelectedTexture(null);
+    setSelectedPack(null);
   };
 
   const handleEditTexture = (texture: Texture) => {
@@ -61,9 +69,10 @@ function App() {
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {currentPage === 'browse' && (
-            <BrowseTextures onViewTexture={handleViewTexture} onViewProfile={handleViewProfile} />
+            <BrowseTextures onViewTexture={handleViewTexture} onViewPack={handleViewPack} onViewProfile={handleViewProfile} />
           )}
           {currentPage === 'upload' && <UploadTexture />}
+          {currentPage === 'create-pack' && <CreatePack />}
           {currentPage === 'edit' && editingTexture && <EditTexture texture={editingTexture} onUpdate={handleUpdateTexture} onNavigate={setCurrentPage} />}
           {currentPage === 'admin' && <AdminPanel onViewTexture={handleViewTexture} />}
           {currentPage === 'profile' && profileUsername && (
@@ -73,6 +82,9 @@ function App() {
 
         {selectedTexture && (
           <TextureDetail texture={selectedTexture} onClose={handleCloseDetail} onEdit={handleEditTexture} onViewProfile={handleViewProfile} />
+        )}
+        {selectedPack && (
+          <PackDetail pack={selectedPack} onClose={handleCloseDetail} onViewProfile={handleViewProfile} />
         )}
 
         {editingTexture && currentPage !== 'edit' && (
