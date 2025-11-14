@@ -206,6 +206,8 @@ export default function CreatePack() {
 
       const packStatus = isTrusted ? 'approved' : 'pending';
 
+      const textureIds = selectedTextures.map(texture => texture.id);
+
       const { data: packData, error: packError } = await supabase
         .from('packs')
         .insert({
@@ -215,20 +217,12 @@ export default function CreatePack() {
           author: profile!.username,
           thumbnail_url: thumbnailUrl,
           status: packStatus,
+          texture_ids: textureIds,
         })
         .select()
         .single();
 
       if (packError) throw packError;
-
-      const textureIds = selectedTextures.map(texture => texture.id);
-
-      const { error: texturesError } = await supabase
-        .from('packs')
-        .update({ texture_ids: textureIds })
-        .eq('id', packData.id);
-
-      if (texturesError) throw texturesError;
 
       setSuccess(true);
       // Reset form
