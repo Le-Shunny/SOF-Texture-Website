@@ -74,7 +74,7 @@ function App() {
           {currentPage === 'upload' && <UploadTexture />}
           {currentPage === 'create-pack' && <CreatePack />}
           {currentPage === 'edit' && editingTexture && <EditTexture texture={editingTexture} onUpdate={handleUpdateTexture} onNavigate={setCurrentPage} />}
-          {currentPage === 'admin' && <AdminPanel onViewTexture={handleViewTexture} />}
+          {currentPage === 'admin' && <AdminPanel onViewTexture={handleViewTexture} onViewPack={handleViewPack} />}
           {currentPage === 'profile' && profileUsername && (
             <ProfileView username={profileUsername} onNavigate={setCurrentPage} onViewTexture={handleViewTexture} />
           )}

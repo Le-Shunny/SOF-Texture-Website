@@ -192,7 +192,7 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
       for (const texture of textures) {
         const response = await fetch(texture.texture_url);
         const blob = await response.blob();
-        zip.file(`${texture.title}.zip`, blob);
+        zip.file(`${texture.title}.png`, blob);
       }
 
       const content = await zip.generateAsync({ type: 'blob' });

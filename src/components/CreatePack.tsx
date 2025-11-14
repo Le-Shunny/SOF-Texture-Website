@@ -85,6 +85,8 @@ export default function CreatePack() {
         return;
       }
 
+      const packStatus = profile.rank === 'admin' || profile.rank === 'trusted' ? 'approved' : 'pending';
+
       const { data: packData, error: packError } = await supabase
         .from('packs')
         .insert({
@@ -93,6 +95,7 @@ export default function CreatePack() {
           description,
           author: profile.username,
           thumbnail_url: thumbnailUrl,
+          status: packStatus,
         })
         .select()
         .single();
