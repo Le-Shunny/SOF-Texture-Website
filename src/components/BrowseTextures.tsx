@@ -5,13 +5,14 @@ import { Search, Download, Edit, Trash2, ThumbsUp, ThumbsDown, ArrowUpDown, User
 
 interface BrowseTexturesProps {
   onViewTexture: (texture: Texture) => void;
+  onEditTexture: (texture: Texture) => void;
   onViewPack: (pack: Pack) => void;
   onViewProfile: (username: string) => void;
 }
 
 type SortOption = 'relevance' | 'newest' | 'oldest' | 'updated_newest' | 'updated_oldest' | 'upvotes_high' | 'downvotes_high' | 'downloads_high' | 'downloads_low';
 
-export default function BrowseTextures({ onViewTexture, onViewPack, onViewProfile }: BrowseTexturesProps) {
+export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPack, onViewProfile }: BrowseTexturesProps) {
   const { user, isAdmin } = useAuth();
   const [textures, setTextures] = useState<Texture[]>([]);
   const [packs, setPacks] = useState<Pack[]>([]);
@@ -465,13 +466,15 @@ export default function BrowseTextures({ onViewTexture, onViewPack, onViewProfil
 
                   {(isAdmin || (user && texture.user_id === user.id)) && (
                     <div className="flex gap-2 mt-4" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={() => onViewTexture(texture)}
-                        className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                      >
-                        <Edit className="w-4 h-4" />
-                        Edit
-                      </button>
+                      {user && texture.user_id === user.id && (
+                        <button
+                          onClick={() => onEditTexture(texture)}
+                          className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Edit
+                        </button>
+                      )}
                       <button
                         onClick={() => handleDelete(texture.id)}
                         className="flex items-center gap-2 px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"

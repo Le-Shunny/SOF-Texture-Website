@@ -69,7 +69,7 @@ function App() {
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {currentPage === 'browse' && (
-            <BrowseTextures onViewTexture={handleViewTexture} onViewPack={handleViewPack} onViewProfile={handleViewProfile} />
+            <BrowseTextures onViewTexture={handleViewTexture} onEditTexture={handleEditTexture} onViewPack={handleViewPack} onViewProfile={handleViewProfile} />
           )}
           {currentPage === 'upload' && <UploadTexture />}
           {currentPage === 'create-pack' && <CreatePack />}
