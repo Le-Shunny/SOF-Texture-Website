@@ -1,23 +1,116 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useDropzone, Accept } from 'react-dropzone';
 import { supabase, Texture } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Upload, Package } from 'lucide-react';
+import { Upload, Package, X } from 'lucide-react';
+
+interface DropzoneProps {
+  onDrop: (acceptedFiles: File[]) => void;
+  accept: Accept;
+  file: File | null;
+  preview: string | null;
+  clearFile: () => void;
+  label: string;
+  description: string;
+}
+
+function Dropzone({
+  onDrop,
+  accept,
+  file,
+  preview,
+  clearFile,
+  label,
+  description,
+}: DropzoneProps) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept,
+    multiple: false,
+  });
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        {label}
+        <span className="text-gray-500 text-xs ml-2">{description}</span>
+      </label>
+      <div
+        {...getRootProps()}
+        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition ${
+          isDragActive ? 'border-blue-600 bg-blue-50' : 'border-gray-300 hover:border-blue-500'
+        }`}
+      >
+        <input {...getInputProps()} />
+        {preview ? (
+          <div className="relative mx-auto max-h-48 w-fit">
+            <img
+              src={preview}
+              alt="Preview"
+              className="max-h-48 rounded"
+            />
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                clearFile();
+              }}
+              className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 shadow-md hover:bg-red-700 transition"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center">
+            <Upload className="w-12 h-12 mx-auto text-gray-400 mb-2" />
+            <p className="text-sm text-gray-600">
+              {isMobile
+                ? 'Tap to select a file'
+                : isDragActive
+                ? 'Drop the file here...'
+                : "Drag 'n' drop a file here, or click to select, 10 MB max"}
+            </p>
+            {file && <p className="text-sm text-green-600 mt-2">{file.name}</p>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function CreatePack() {
-  const { user, profile } = useAuth();
+  const { user, profile, isTrusted } = useAuth();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState<string>('');
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [selectedTextures, setSelectedTextures] = useState<Texture[]>([]);
   const [availableTextures, setAvailableTextures] = useState<Texture[]>([]);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (user) {
       fetchUserTextures();
     }
   }, [user]);
+
+  useEffect(() => {
+    // Revoke object URLs on unmount to prevent memory leaks
+    return () => {
+      if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview);
+    };
+  }, [thumbnailPreview]);
 
   const fetchUserTextures = async () => {
     const { data, error } = await supabase
@@ -32,13 +125,32 @@ export default function CreatePack() {
     }
   };
 
-  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setThumbnailFile(file);
-      const reader = new FileReader();
-      reader.onload = () => setThumbnailPreview(reader.result as string);
-      reader.readAsDataURL(file);
+  const onThumbnailDrop = useCallback((acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Thumbnail must be an image file');
+      return;
+    }
+
+    // Check file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Thumbnail file size must not exceed 10MB');
+      return;
+    }
+
+    setThumbnailFile(file);
+    if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview);
+    setThumbnailPreview(URL.createObjectURL(file));
+    setError('');
+  }, [thumbnailPreview]);
+
+  const clearThumbnailFile = () => {
+    setThumbnailFile(null);
+    if (thumbnailPreview) {
+      URL.revokeObjectURL(thumbnailPreview);
+      setThumbnailPreview(null);
     }
   };
 
@@ -74,26 +186,33 @@ export default function CreatePack() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !profile || selectedTextures.length === 0) return;
-
+    setError('');
+    setSuccess(false);
     setLoading(true);
+
     try {
-      const thumbnailUrl = await uploadThumbnail();
-      if (!thumbnailUrl) {
-        alert('Failed to upload thumbnail');
-        setLoading(false);
-        return;
+      if (!thumbnailFile) {
+        throw new Error('Please upload a thumbnail file');
       }
 
-      const packStatus = profile.rank === 'admin' || profile.rank === 'trusted' ? 'approved' : 'pending';
+      if (selectedTextures.length === 0) {
+        throw new Error('Please select at least one texture');
+      }
+
+      const thumbnailUrl = await uploadThumbnail();
+      if (!thumbnailUrl) {
+        throw new Error('Failed to upload thumbnail');
+      }
+
+      const packStatus = isTrusted ? 'approved' : 'pending';
 
       const { data: packData, error: packError } = await supabase
         .from('packs')
         .insert({
-          user_id: user.id,
+          user_id: user!.id,
           title,
           description,
-          author: profile.username,
+          author: profile!.username,
           thumbnail_url: thumbnailUrl,
           status: packStatus,
         })
@@ -113,29 +232,37 @@ export default function CreatePack() {
 
       if (texturesError) throw texturesError;
 
-      alert('Pack created successfully!');
+      setSuccess(true);
       // Reset form
       setTitle('');
       setDescription('');
-      setThumbnailFile(null);
-      setThumbnailPreview('');
+      clearThumbnailFile();
       setSelectedTextures([]);
-    } catch (error) {
-      console.error('Error creating pack:', error);
-      alert('Failed to create pack');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create pack');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-2xl font-bold mb-6 flex items-center">
-          <Package className="w-6 h-6 mr-2" />
-          Create Pack
-        </h1>
+    <div className="max-w-3xl mx-auto">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">Create Pack</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
+          Pack created successfully!{' '}
+          {!isTrusted && 'It will be reviewed by admins before being published.'}
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Pack Title *
@@ -161,35 +288,15 @@ export default function CreatePack() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Thumbnail *
-            </label>
-            <div className="flex items-center space-x-4">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleThumbnailChange}
-                className="hidden"
-                id="thumbnail-upload"
-                required
-              />
-              <label
-                htmlFor="thumbnail-upload"
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Choose Thumbnail
-              </label>
-              {thumbnailPreview && (
-                <img
-                  src={thumbnailPreview}
-                  alt="Thumbnail preview"
-                  className="w-16 h-16 object-cover rounded"
-                />
-              )}
-            </div>
-          </div>
+        <Dropzone
+          onDrop={onThumbnailDrop}
+          accept={{ 'image/*': [] }}
+          file={thumbnailFile}
+          preview={thumbnailPreview}
+          clearFile={clearThumbnailFile}
+          label="Thumbnail *"
+          description="Recommended: 3:2 aspect ratio."
+        />
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -231,8 +338,7 @@ export default function CreatePack() {
           >
             {loading ? 'Creating Pack...' : 'Create Pack'}
           </button>
-        </form>
-      </div>
+      </form>
     </div>
   );
 }
