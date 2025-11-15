@@ -193,7 +193,7 @@ export default function EditPack({ pack, onUpdate, onClose }: EditPackProps) {
     if (!thumbnailFile || !user) return pack.thumbnail_url;
 
     const fileExt = thumbnailFile.name.split('.').pop();
-    const fileName = `${pack.id}.${fileExt}`;
+    const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
 
     const { error } = await supabase.storage
       .from('pack-thumbnails')

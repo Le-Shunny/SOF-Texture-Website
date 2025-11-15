@@ -297,30 +297,31 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <button
-        onClick={() => onNavigate && onNavigate('browse')}
-        className="flex items-center gap-2 mb-4 text-gray-600 hover:text-gray-800"
-      >
-        <ArrowLeft className="w-5 h-5" />
-        Back to Browse
-      </button>
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Edit Texture</h1>
-
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-          {error}
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+        <div className="flex justify-between items-center p-4 border-b">
+          <h1 className="text-xl font-bold">Edit Texture</h1>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
-      )}
+        <div className="overflow-y-auto max-h-[calc(90vh-80px)] p-6">
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
+            </div>
+          )}
 
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
-          Texture updated successfully!
-        </div>
-      )}
+          {success && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
+              Texture updated successfully!
+            </div>
+          )}
 
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
         <Dropzone
           onDrop={handleTextureDrop}
           accept={{ 'image/png': ['.png'] }}
@@ -436,7 +437,8 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
         >
           {loading ? 'Updating...' : 'Update Texture'}
         </button>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );
