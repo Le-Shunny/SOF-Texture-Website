@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase, Pack, PackComment, PackVote, Texture } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Download, ThumbsUp, ThumbsDown, MessageSquare, User, Package, Archive, X, Edit } from 'lucide-react';
+import { Download, ThumbsUp, ThumbsDown, MessageSquare, User, Package, Archive, X, Edit, Calendar, Hash, Trash2 } from 'lucide-react';
 import JSZip from 'jszip';
 import EditPack from './EditPack';
 
@@ -12,7 +12,7 @@ interface PackDetailProps {
 }
 
 export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailProps) {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [textures, setTextures] = useState<Texture[]>([]);
   const [comments, setComments] = useState<PackComment[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -134,7 +134,8 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
     }
   };
 
-  const handleAddComment = async () => {
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!user || !newComment.trim()) return;
 
     try {
@@ -155,6 +156,16 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
       }
     } catch (error) {
       console.error('Error adding comment:', error);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!confirm('Are you sure you want to delete this comment?')) return;
+
+    const { error } = await supabase.from('pack_comments').delete().eq('id', commentId);
+
+    if (!error) {
+      setComments(comments.filter((c) => c.id !== commentId));
     }
   };
 
@@ -219,167 +230,235 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
     setDownloadingPack(false);
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
   if (loading) {
     return <div className="text-center py-8">Loading pack details...</div>;
   }
 
   if (isEditing) {
     return (
-      <EditPack
-        pack={localPack}
-        onUpdate={handleUpdatePack}
-        onClose={handleCloseEdit}
-      />
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-60 overflow-y-auto">
+        <div className="min-h-screen px-6 sm:px-4 py-8">
+          <div className="max-w-full lg:max-w-5xl mx-auto bg-white rounded-lg shadow-xl">
+            <EditPack
+              pack={localPack}
+              onUpdate={handleUpdatePack}
+              onClose={handleCloseEdit}
+            />
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
-        <div className="flex justify-between items-center p-4 border-b">
-          <h1 className="text-xl font-bold">{pack.title}</h1>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-        <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
-        <div className="md:flex">
-          <div className="md:w-1/3">
-            <img
-              src={pack.thumbnail_url}
-              alt={pack.title}
-              className="w-full h-64 md:h-full object-cover"
-            />
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-60 overflow-y-auto">
+      <div className="min-h-screen px-6 sm:px-4 py-8">
+        <div className="max-w-full lg:max-w-5xl mx-auto bg-white rounded-lg shadow-xl">
+          <div className="flex justify-between items-center p-6 border-b">
+            <h2 className="text-2xl font-bold text-gray-800">{localPack.title}</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition"
+            >
+              <X className="w-6 h-6" />
+            </button>
           </div>
-          <div className="md:w-2/3 p-6">
-            <h1 className="text-3xl font-bold mb-2">{pack.title}</h1>
-            <p className="text-gray-600 mb-4">{pack.description}</p>
-            <div className="flex items-center mb-4">
-              <User className="w-4 h-4 mr-1" />
-              <button
-                onClick={() => onViewProfile(pack.author)}
-                className="text-blue-600 hover:underline"
-              >
-                {pack.author}
-              </button>
-            </div>
-            <div className="flex items-center gap-4 pt-4">
-              {user && user.id === pack.user_id && (
-                <button
-                  onClick={handleEditPack}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-                >
-                  <Edit className="w-5 h-5" />
-                  <span>Edit Pack</span>
-                </button>
-              )}
-              <button
-                onClick={() => handleVote('upvote')}
-                disabled={loading}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${
-                  userVote?.vote_type === 'upvote'
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-gray-100 text-gray-700 hover:bg-green-50'
-                }`}
-              >
-                <ThumbsUp className="w-5 h-5" />
-                <span>{localPack.upvotes}</span>
-              </button>
 
-              <button
-                onClick={() => handleVote('downvote')}
-                disabled={loading}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${
-                  userVote?.vote_type === 'downvote'
-                    ? 'bg-red-100 text-red-700'
-                    : 'bg-gray-100 text-gray-700 hover:bg-red-50'
-                }`}
-              >
-                <ThumbsDown className="w-5 h-5" />
-                <span>{localPack.downvotes}</span>
-              </button>
-              <button
-                onClick={downloadPack}
-                disabled={downloadingPack}
-                className="flex items-center space-x-1 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
-              >
-                <Archive className="w-4 h-4" />
-                <span>{downloadingPack ? 'Downloading...' : 'Download Pack'}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-6">
-          <h2 className="text-xl font-bold mb-4 flex items-center">
-            <Package className="w-5 h-5 mr-2" />
-            Textures in this Pack ({textures.length})
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {textures.map((texture) => (
-              <div key={texture.id} className="border rounded-lg p-4">
+          <div className="p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <div className="aspect-[3/2]">
                 <img
-                  src={texture.thumbnail_url}
-                  alt={texture.title}
-                  className="w-full h-32 object-cover rounded mb-2"
+                  src={localPack.thumbnail_url}
+                  alt={localPack.title}
+                  className="w-full h-full object-cover rounded-lg shadow-md"
                 />
-                <h3 className="font-medium">{texture.title}</h3>
-                <p className="text-sm text-gray-600 mb-2">
-                  {texture.aircraft} - {texture.category}
-                </p>
-                <button
-                  onClick={() => downloadTexture(texture)}
-                  className="flex items-center space-x-1 text-blue-600 hover:text-blue-800"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Download</span>
-                </button>
               </div>
-            ))}
-          </div>
-        </div>
 
-        <div className="p-6 border-t">
-          <h2 className="text-xl font-bold mb-4 flex items-center">
-            <MessageSquare className="w-5 h-5 mr-2" />
-            Comments ({comments.length})
-          </h2>
-          {user && (
-            <div className="mb-4">
-              <textarea
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Add a comment..."
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button
-                onClick={handleAddComment}
-                disabled={!newComment.trim()}
-                className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
-              >
-                Add Comment
-              </button>
-            </div>
-          )}
-          <div className="space-y-4">
-            {comments.map((comment) => (
-              <div key={comment.id} className="border-b pb-4">
-                <div className="flex items-center mb-2">
-                  <User className="w-4 h-4 mr-1" />
-                  <span className="font-medium">{comment.author_name}</span>
-                  <span className="text-gray-500 text-sm ml-2">
-                    {new Date(comment.created_at).toLocaleDateString()}
-                  </span>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">Author</h3>
+                  <p className="text-gray-800">
+                    {onViewProfile ? (
+                      <button
+                        onClick={() => onViewProfile(localPack.author)}
+                        className="text-blue-600 hover:text-blue-800 underline"
+                      >
+                        {localPack.author}
+                      </button>
+                    ) : (
+                      localPack.author
+                    )}
+                  </p>
                 </div>
-                <p className="text-gray-700">{comment.content}</p>
+
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">Uploaded</h3>
+                  <p className="text-gray-800 flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    {formatDate(localPack.created_at)}
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">Updated</h3>
+                  <p className="text-gray-800 flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    {formatDate(localPack.updated_at)}
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">Pack ID</h3>
+                  <p className="text-gray-800 flex items-center gap-2 font-mono text-xs">
+                    <Hash className="w-4 h-4" />
+                    {localPack.id}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-4 pt-4">
+                  {user && user.id === localPack.user_id && (
+                    <button
+                      onClick={handleEditPack}
+                      className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                    >
+                      <Edit className="w-5 h-5" />
+                      <span>Edit Pack</span>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleVote('upvote')}
+                    disabled={loading}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${
+                      userVote?.vote_type === 'upvote'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-gray-100 text-gray-700 hover:bg-green-50'
+                    }`}
+                  >
+                    <ThumbsUp className="w-5 h-5" />
+                    <span>{localPack.upvotes}</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleVote('downvote')}
+                    disabled={loading}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${
+                      userVote?.vote_type === 'downvote'
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-gray-100 text-gray-700 hover:bg-red-50'
+                    }`}
+                  >
+                    <ThumbsDown className="w-5 h-5" />
+                    <span>{localPack.downvotes}</span>
+                  </button>
+                  <button
+                    onClick={downloadPack}
+                    disabled={downloadingPack}
+                    className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition"
+                  >
+                    <Archive className="w-5 h-5" />
+                    {downloadingPack ? 'Downloading...' : 'Download Pack'}
+                  </button>
+                </div>
               </div>
-            ))}
+            </div>
+
+            <div className="border-t pt-6">
+              <h2 className="text-xl font-bold mb-4 flex items-center">
+                <Package className="w-5 h-5 mr-2" />
+                Textures in this Pack ({textures.length})
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {textures.map((texture) => (
+                  <div key={texture.id} className="border rounded-lg p-4">
+                    <img
+                      src={texture.thumbnail_url}
+                      alt={texture.title}
+                      className="w-full h-32 object-cover rounded mb-2"
+                    />
+                    <h3 className="font-medium">{texture.title}</h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {texture.aircraft} - {texture.category}
+                    </p>
+                    <button
+                      onClick={() => downloadTexture(texture)}
+                      className="flex items-center space-x-1 text-blue-600 hover:text-blue-800"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Download</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                Comments ({comments.length})
+              </h3>
+
+              {user && (
+                <form onSubmit={handleAddComment} className="mb-6">
+                  <textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Add a comment..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+                    rows={3}
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading || !newComment.trim()}
+                    className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition disabled:opacity-50"
+                  >
+                    Post Comment
+                  </button>
+                </form>
+              )}
+
+              <div className="space-y-4">
+                {comments.map((comment) => (
+                  <div key={comment.id} className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-gray-400" />
+                        <span className="font-medium text-gray-800">
+                          {comment.author_name}
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          {formatDate(comment.created_at)}
+                        </span>
+                      </div>
+
+                      {(user?.id === comment.user_id || isAdmin) && (
+                        <button
+                          onClick={() => handleDeleteComment(comment.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-gray-700">{comment.content}</p>
+                  </div>
+                ))}
+
+                {comments.length === 0 && (
+                  <p className="text-center text-gray-500 py-4">
+                    No comments yet. Be the first to comment!
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
         </div>
       </div>
     </div>
