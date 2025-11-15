@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Download, ThumbsUp, ThumbsDown, MessageSquare, User, Package, Archive, X, Edit, Calendar, Hash, Trash2 } from 'lucide-react';
 import JSZip from 'jszip';
 import EditPack from './EditPack';
+import { deleteTextureFiles } from '../lib/storageUtils';
 
 interface PackDetailProps {
   pack: Pack;
@@ -171,6 +172,33 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
 
   const handleEditPack = () => {
     setIsEditing(true);
+  };
+
+  const handleDeletePack = async () => {
+    if (!confirm('Are you sure you want to delete this pack? This will also delete the associated thumbnail.')) return;
+
+    setLoading(true);
+
+    try {
+      // Delete the thumbnail file
+      await deleteTextureFiles('', localPack.thumbnail_url);
+
+      // Delete the pack from database (cascade will handle related records)
+      const { error } = await supabase
+        .from('packs')
+        .delete()
+        .eq('id', localPack.id);
+
+      if (error) throw error;
+
+      alert('Pack and associated thumbnail deleted successfully!');
+      onClose(); // Close the detail view
+    } catch (error) {
+      console.error('Failed to delete pack:', error);
+      alert('Failed to delete pack. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleUpdatePack = (updatedPack: Pack) => {
@@ -361,7 +389,7 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
                 </button>
 
                 {user && user.id === localPack.user_id && (
-                  <div className="pt-4">
+                  <>
                     <button
                       onClick={handleEditPack}
                       className="flex items-center justify-center gap-2 w-full bg-gray-600 text-white py-3 px-4 rounded-md hover:bg-gray-700"
@@ -369,7 +397,14 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
                       <Edit className="w-5 h-5" />
                       Edit Pack
                     </button>
-                  </div>
+                    <button
+                      onClick={handleDeletePack}
+                      className="flex items-center justify-center gap-2 w-full bg-red-600 text-white py-3 px-4 rounded-md hover:bg-red-700"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                      Delete Pack
+                    </button>
+                  </>
                 )}
               </div>
             </div>
