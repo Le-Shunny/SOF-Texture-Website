@@ -162,11 +162,11 @@ export default function CreatePack() {
     );
   };
 
-  const uploadThumbnail = async (): Promise<string | null> => {
+  const uploadThumbnail = async (packId: string): Promise<string | null> => {
     if (!thumbnailFile || !user) return null;
 
     const fileExt = thumbnailFile.name.split('.').pop();
-    const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+    const fileName = `${packId}.${fileExt}`;
 
     const { error } = await supabase.storage
       .from('pack-thumbnails')
@@ -199,7 +199,9 @@ export default function CreatePack() {
         throw new Error('Please select at least one texture');
       }
 
-      const thumbnailUrl = await uploadThumbnail();
+      const packId = crypto.randomUUID();
+
+      const thumbnailUrl = await uploadThumbnail(packId);
       if (!thumbnailUrl) {
         throw new Error('Failed to upload thumbnail');
       }
@@ -208,9 +210,10 @@ export default function CreatePack() {
 
       const textureIds = selectedTextures.map(texture => texture.id);
 
-      const { data: packData, error: packError } = await supabase
+      const { error: packError } = await supabase
         .from('packs')
         .insert({
+          id: packId,
           user_id: user!.id,
           title,
           description,
@@ -218,9 +221,7 @@ export default function CreatePack() {
           thumbnail_url: thumbnailUrl,
           status: packStatus,
           texture_ids: textureIds,
-        })
-        .select()
-        .single();
+        });
 
       if (packError) throw packError;
 

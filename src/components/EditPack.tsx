@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useDropzone, Accept } from 'react-dropzone';
 import { supabase, Texture, Pack } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { deleteTextureFiles } from '../lib/storageUtils';
+import { deleteStorageFile } from '../lib/storageUtils';
 import { Upload, Package, X } from 'lucide-react';
 
 interface DropzoneProps {
@@ -193,7 +193,7 @@ export default function EditPack({ pack, onUpdate, onClose }: EditPackProps) {
     if (!thumbnailFile || !user) return pack.thumbnail_url;
 
     const fileExt = thumbnailFile.name.split('.').pop();
-    const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+    const fileName = `${pack.id}.${fileExt}`;
 
     const { error } = await supabase.storage
       .from('pack-thumbnails')
@@ -227,6 +227,11 @@ export default function EditPack({ pack, onUpdate, onClose }: EditPackProps) {
         throw new Error('Failed to upload thumbnail');
       }
 
+      // Delete old thumbnail if changed
+      if (thumbnailUrl !== pack.thumbnail_url) {
+        await deleteStorageFile(pack.thumbnail_url, 'pack-thumbnails');
+      }
+
       const textureIds = selectedTextures.map(texture => texture.id);
 
       const { data: packData, error: packError } = await supabase
@@ -247,7 +252,7 @@ export default function EditPack({ pack, onUpdate, onClose }: EditPackProps) {
 
       // Delete old thumbnail if changed
       if (thumbnailFile && thumbnailUrl !== pack.thumbnail_url) {
-        await deleteTextureFiles('', pack.thumbnail_url);
+        await deleteStorageFile(pack.thumbnail_url, 'pack-thumbnails');
       }
 
       setSuccess(true);
