@@ -7,12 +7,13 @@ interface BrowseTexturesProps {
   onViewTexture: (texture: Texture) => void;
   onEditTexture: (texture: Texture) => void;
   onViewPack: (pack: Pack) => void;
+  onEditPack: (pack: Pack) => void;
   onViewProfile: (username: string) => void;
 }
 
 type SortOption = 'relevance' | 'newest' | 'oldest' | 'updated_newest' | 'updated_oldest' | 'upvotes_high' | 'downvotes_high' | 'downloads_high' | 'downloads_low';
 
-export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPack, onViewProfile }: BrowseTexturesProps) {
+export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPack, onEditPack, onViewProfile }: BrowseTexturesProps) {
   const { user, isAdmin } = useAuth();
   const [textures, setTextures] = useState<Texture[]>([]);
   const [packs, setPacks] = useState<Pack[]>([]);
@@ -85,6 +86,40 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     } catch (error) {
       console.error('Failed to delete texture:', error);
       alert('Failed to delete texture. Please try again.');
+    }
+  };
+
+  const handleDeletePack = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this pack? This will also delete the associated thumbnail.')) return;
+
+    const pack = packs.find((p) => p.id === id);
+    if (!pack) return;
+
+    if (!isAdmin && (!user || pack.user_id !== user.id)) {
+      alert('You can only delete your own packs.');
+      return;
+    }
+
+    try {
+      // Delete thumbnail
+      const { deleteStorageFile } = await import('../lib/storageUtils');
+      await deleteStorageFile(pack.thumbnail_url, 'thumbnails');
+
+      // Delete from db
+      const { error } = await supabase
+        .from('packs')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Remove from local state
+      setPacks(packs.filter((p) => p.id !== id));
+
+      alert('Pack and thumbnail deleted successfully!');
+    } catch (error) {
+      console.error('Failed to delete pack:', error);
+      alert('Failed to delete pack. Please try again.');
     }
   };
 
@@ -535,6 +570,27 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
                       </div>
                     </div>
                   </div>
+
+                  {(isAdmin || (user && pack.user_id === user.id)) && (
+                    <div className="flex gap-2 mt-4" onClick={(e) => e.stopPropagation()}>
+                      {user && pack.user_id === user.id && (
+                        <button
+                          onClick={() => onEditPack(pack)}
+                          className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Edit
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDeletePack(pack.id)}
+                        className="flex items-center gap-2 px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
