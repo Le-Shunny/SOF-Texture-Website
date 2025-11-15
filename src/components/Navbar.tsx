@@ -181,6 +181,19 @@ export default function Navbar({ onNavigate, currentPage, onViewProfile }: Navba
                 </button>
               )}
 
+              {user && (
+                <button
+                  onClick={() => {
+                    onNavigate('create-pack');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex items-center w-full px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                >
+                  <Package className="w-5 h-5 mr-2" />
+                  Create Pack
+                </button>
+              )}
+
               {isAdmin && (
                 <button
                   onClick={() => {
@@ -244,7 +257,7 @@ export default function Navbar({ onNavigate, currentPage, onViewProfile }: Navba
                       setShowLogin(true);
                       setMobileMenuOpen(false);
                     }}
-                    className="w-full px-3 py-2 text-white hover:bg-gray-700 rounded-md"
+                    className="w-full px-3 py-2 text-black rounded-md"
                   >
                     Login
                   </button>
