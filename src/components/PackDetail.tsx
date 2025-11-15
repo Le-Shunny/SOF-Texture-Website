@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase, Pack, PackComment, PackVote, Texture } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Download, ThumbsUp, ThumbsDown, MessageSquare, User, Package, Archive, X, Edit, Calendar, Hash, Trash2 } from 'lucide-react';
+import { Download, ThumbsUp, ThumbsDown, MessageSquare, User, Package, Archive, X, Edit, Calendar, Hash, Trash2, Flag } from 'lucide-react';
 import JSZip from 'jszip';
 import EditPack from './EditPack';
 import { deleteStorageFile } from '../lib/storageUtils';
@@ -22,6 +22,9 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
   const [loading, setLoading] = useState(true);
   const [downloadingPack, setDownloadingPack] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportCategory, setReportCategory] = useState<'inappropriate_content' | 'theft' | 'other'>('inappropriate_content');
+  const [reportReason, setReportReason] = useState('');
 
   useEffect(() => {
     fetchPackData();
@@ -209,6 +212,41 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
     setIsEditing(false);
   };
 
+  const handleReport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      alert('Please login to report packs');
+      return;
+    }
+
+    if (!reportReason.trim()) {
+      alert('Please provide a reason for the report');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.from('pack_reports').insert({
+        pack_id: pack.id,
+        reporter_id: user.id,
+        category: reportCategory,
+        reason: reportReason,
+      });
+
+      if (error) throw error;
+
+      alert('Report submitted successfully. Thank you for helping keep our community safe!');
+      setShowReportModal(false);
+      setReportReason('');
+      setReportCategory('inappropriate_content');
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      alert('Failed to submit report. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const downloadTexture = async (texture: Texture) => {
     try {
       const response = await fetch(texture.texture_url);
@@ -280,11 +318,75 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
               onUpdate={handleUpdatePack}
               onClose={handleCloseEdit}
             />
-          </div>
         </div>
       </div>
-    );
-  }
+
+      {showReportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-full sm:max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-800">Report Pack</h3>
+              <button
+                onClick={() => setShowReportModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleReport} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category
+                </label>
+                <select
+                  value={reportCategory}
+                  onChange={(e) => setReportCategory(e.target.value as 'inappropriate_content' | 'theft' | 'other')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                >
+                  <option value="inappropriate_content">Inappropriate Content</option>
+                  <option value="theft">Stolen/Plagiarized Content</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reason
+                </label>
+                <textarea
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  placeholder="Please describe why you are reporting this pack..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  rows={4}
+                  required
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowReportModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition disabled:opacity-50"
+                >
+                  {loading ? 'Submitting...' : 'Submit Report'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-60 overflow-y-auto">
@@ -387,6 +489,16 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
                   <Archive className="w-5 h-5" />
                   {downloadingPack ? 'Downloading...' : 'Download Pack'}
                 </button>
+
+                {user && (
+                  <button
+                    onClick={() => setShowReportModal(true)}
+                    className="flex items-center justify-center gap-2 w-full bg-orange-600 text-white py-3 px-4 rounded-md hover:bg-orange-700 transition"
+                  >
+                    <Flag className="w-5 h-5" />
+                    Report Pack
+                  </button>
+                )}
 
                 {user && user.id === localPack.user_id && (
                   <>

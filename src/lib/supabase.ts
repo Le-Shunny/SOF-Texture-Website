@@ -95,3 +95,14 @@ export interface PackVote {
   vote_type: 'upvote' | 'downvote';
   created_at: string;
 }
+
+export interface PackReport {
+  id: string;
+  pack_id: string;
+  reporter_id: string | null;
+  category: 'inappropriate_content' | 'theft' | 'other';
+  reason: string;
+  status: 'pending' | 'dismissed';
+  created_at: string;
+  updated_at: string;
+}

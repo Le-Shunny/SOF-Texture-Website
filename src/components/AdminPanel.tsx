@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase, Texture, Pack } from '../lib/supabase';
 import { Check, X, Eye, Trash2, ChevronDown, ChevronUp, Hourglass, AlertTriangle } from 'lucide-react';
 import ReportedTextures from './ReportedTextures';
+import ReportedPacks from './ReportedPacks';
 
 interface AdminPanelProps {
   onViewTexture: (texture: Texture) => void;
@@ -16,6 +17,7 @@ export default function AdminPanel({ onViewTexture, onViewPack }: AdminPanelProp
   const [packsSectionExpanded, setPacksSectionExpanded] = useState(true);
   const [reportsSectionExpanded, setReportsSectionExpanded] = useState(true);
   const [reportsCount, setReportsCount] = useState(0);
+  const [packReportsCount, setPackReportsCount] = useState(0);
 
   useEffect(() => {
     fetchPendingTextures();
@@ -56,6 +58,14 @@ export default function AdminPanel({ onViewTexture, onViewPack }: AdminPanelProp
 
     if (!error) {
       setReportsCount(count || 0);
+    }
+
+    const { count: packCount, error: packError } = await supabase
+      .from('pack_reports')
+      .select('*', { count: 'exact', head: true });
+
+    if (!packError) {
+      setPackReportsCount(packCount || 0);
     }
   };
 
@@ -380,6 +390,29 @@ export default function AdminPanel({ onViewTexture, onViewPack }: AdminPanelProp
         {reportsSectionExpanded && (
           <div className="p-6 pt-0">
             <ReportedTextures onViewTexture={onViewTexture} />
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md">
+        <button
+          onClick={() => setReportsSectionExpanded(!reportsSectionExpanded)}
+          className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition"
+        >
+          <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-red-500" />
+            Reported Packs ({packReportsCount})
+          </h2>
+          {reportsSectionExpanded ? (
+            <ChevronUp className="w-6 h-6 text-gray-600" />
+          ) : (
+            <ChevronDown className="w-6 h-6 text-gray-600" />
+          )}
+        </button>
+
+        {reportsSectionExpanded && (
+          <div className="p-6 pt-0">
+            <ReportedPacks onViewPack={onViewPack} />
           </div>
         )}
       </div>
