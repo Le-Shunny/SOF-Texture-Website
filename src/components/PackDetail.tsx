@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Download, ThumbsUp, ThumbsDown, MessageSquare, User, Package, Archive, X, Edit, Calendar, Hash, Trash2 } from 'lucide-react';
 import JSZip from 'jszip';
 import EditPack from './EditPack';
-import { deleteTextureFiles } from '../lib/storageUtils';
+import { deleteStorageFile } from '../lib/storageUtils';
 
 interface PackDetailProps {
   pack: Pack;
@@ -181,7 +181,7 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
 
     try {
       // Delete the thumbnail file
-      await deletePackThumbnail(localPack.thumbnail_url);
+      await deleteStorageFile(localPack.thumbnail_url, 'pack-thumbnails');
 
       // Delete the pack from database (cascade will handle related records)
       const { error } = await supabase
