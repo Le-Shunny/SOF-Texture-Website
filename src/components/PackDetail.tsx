@@ -175,7 +175,7 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
   };
 
   const handleDeletePack = async () => {
-    if (!confirm('Are you sure you want to delete this pack? This will also delete the associated thumbnail.')) return;
+    if (!confirm('Are you sure you want to delete this pack?')) return;
 
     setLoading(true);
 

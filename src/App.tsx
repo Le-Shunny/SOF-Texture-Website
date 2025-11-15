@@ -5,6 +5,7 @@ import BrowseTextures from './components/BrowseTextures';
 import UploadTexture from './components/UploadTexture';
 import TextureDetail from './components/TextureDetail';
 import EditTexture from './components/EditTexture';
+import EditPack from './components/EditPack';
 import AdminPanel from './components/AdminPanel';
 import ProfileView from './components/ProfileView';
 import CreatePack from './components/CreatePack';
@@ -16,12 +17,14 @@ function App() {
   const [selectedTexture, setSelectedTexture] = useState<Texture | null>(null);
   const [selectedPack, setSelectedPack] = useState<Pack | null>(null);
   const [editingTexture, setEditingTexture] = useState<Texture | null>(null);
+  const [editingPack, setEditingPack] = useState<Pack | null>(null);
   const [profileUsername, setProfileUsername] = useState<string>('');
 
   useLayoutEffect(() => {
     if (currentPage !== 'edit') {
       setEditingTexture(null);
     }
+    setEditingPack(null);
   }, [currentPage]);
 
   const handleViewTexture = (texture: Texture) => {
@@ -60,6 +63,23 @@ function App() {
     setCurrentPage('profile');
   };
 
+  const handleEditPack = (pack: Pack) => {
+    setSelectedPack(null);
+    setEditingPack(pack);
+  };
+
+  const handleUpdatePack = (updatedPack: Pack) => {
+    // Update the selectedPack if it's the same
+    if (selectedPack && selectedPack.id === updatedPack.id) {
+      setSelectedPack(updatedPack);
+    }
+    setEditingPack(null);
+  };
+
+  const handleCloseEditPack = () => {
+    setEditingPack(null);
+  };
+
   return (
     <AuthProvider>
       <div className={`min-h-screen bg-gray-50 ${selectedTexture || editingTexture ? 'overflow-hidden' : ''}`}>
@@ -69,7 +89,7 @@ function App() {
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {currentPage === 'browse' && (
-            <BrowseTextures onViewTexture={handleViewTexture} onEditTexture={handleEditTexture} onViewPack={handleViewPack} onViewProfile={handleViewProfile} />
+            <BrowseTextures onViewTexture={handleViewTexture} onEditTexture={handleEditTexture} onViewPack={handleViewPack} onEditPack={handleEditPack} onViewProfile={handleViewProfile} />
           )}
           {currentPage === 'upload' && <UploadTexture />}
           {currentPage === 'create-pack' && <CreatePack />}
@@ -90,6 +110,20 @@ function App() {
         {editingTexture && currentPage !== 'edit' && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60">
             <EditTexture texture={editingTexture} onClose={handleCloseEdit} onUpdate={handleUpdateTexture} />
+          </div>
+        )}
+
+        {editingPack && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-60 overflow-y-auto">
+            <div className="min-h-screen px-6 sm:px-4 py-8">
+              <div className="max-w-full lg:max-w-5xl mx-auto bg-white rounded-lg shadow-xl">
+                <EditPack
+                  pack={editingPack}
+                  onUpdate={handleUpdatePack}
+                  onClose={handleCloseEditPack}
+                />
+              </div>
+            </div>
           </div>
         )}
 
