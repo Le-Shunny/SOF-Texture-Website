@@ -252,7 +252,11 @@ export default function EditPack({ pack, onUpdate, onClose }: EditPackProps) {
 
       // Delete old thumbnail if changed
       if (thumbnailFile && thumbnailUrl !== pack.thumbnail_url) {
-        await deleteStorageFile(pack.thumbnail_url, 'pack-thumbnails');
+        try {
+          await deleteStorageFile(pack.thumbnail_url, 'pack-thumbnails');
+        } catch (error) {
+          console.error('Failed to delete old thumbnail:', error);
+        }
       }
 
       setSuccess(true);
