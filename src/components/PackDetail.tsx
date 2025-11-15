@@ -351,25 +351,28 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
                   </button>
                 </div>
 
-                <div className="flex items-center gap-4 pt-4">
-                  {user && user.id === localPack.user_id && (
-                    <button
-                      onClick={handleEditPack}
-                      className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-                    >
-                      <Edit className="w-5 h-5" />
-                      <span>Edit Pack</span>
-                    </button>
-                  )}
+                <div className="pt-4">
                   <button
                     onClick={downloadPack}
                     disabled={downloadingPack}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
+                    className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition"
                   >
                     <Archive className="w-5 h-5" />
-                    <span>{downloadingPack ? 'Downloading...' : 'Download Pack'}</span>
+                    {downloadingPack ? 'Downloading...' : 'Download Pack'}
                   </button>
                 </div>
+
+                {user && user.id === localPack.user_id && (
+                  <div className="pt-4">
+                    <button
+                      onClick={handleEditPack}
+                      className="flex items-center justify-center gap-2 w-full bg-gray-600 text-white py-3 px-4 rounded-md hover:bg-gray-700"
+                    >
+                      <Edit className="w-5 h-5" />
+                      Edit Pack
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
