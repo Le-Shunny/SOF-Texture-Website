@@ -103,7 +103,7 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     try {
       // Delete thumbnail
       const { deleteStorageFile } = await import('../lib/storageUtils');
-      await deleteStorageFile(pack.thumbnail_url, 'thumbnails');
+      await deleteStorageFile(pack.thumbnail_url, 'pack-thumbnails');
 
       // Delete from db
       const { error } = await supabase
