@@ -324,15 +324,6 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
                 </div>
 
                 <div className="flex items-center gap-4 pt-4">
-                  {user && user.id === localPack.user_id && (
-                    <button
-                      onClick={handleEditPack}
-                      className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-                    >
-                      <Edit className="w-5 h-5" />
-                      <span>Edit Pack</span>
-                    </button>
-                  )}
                   <button
                     onClick={() => handleVote('upvote')}
                     disabled={loading}
@@ -358,13 +349,25 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
                     <ThumbsDown className="w-5 h-5" />
                     <span>{localPack.downvotes}</span>
                   </button>
+                </div>
+
+                <div className="flex items-center gap-4 pt-4">
+                  {user && user.id === localPack.user_id && (
+                    <button
+                      onClick={handleEditPack}
+                      className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                    >
+                      <Edit className="w-5 h-5" />
+                      <span>Edit Pack</span>
+                    </button>
+                  )}
                   <button
                     onClick={downloadPack}
                     disabled={downloadingPack}
-                    className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition"
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
                   >
                     <Archive className="w-5 h-5" />
-                    {downloadingPack ? 'Downloading...' : 'Download Pack'}
+                    <span>{downloadingPack ? 'Downloading...' : 'Download Pack'}</span>
                   </button>
                 </div>
               </div>
