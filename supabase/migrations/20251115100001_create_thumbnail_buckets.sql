@@ -1,4 +1,7 @@
 -- Create separate buckets for texture and pack thumbnails
+-- Note: After running this migration, set RLS policies in Supabase Dashboard > Storage for the new buckets:
+-- - Allow SELECT for all users (public access)
+-- - Allow INSERT, UPDATE, DELETE for authenticated users
 
 -- Create texture-thumbnails bucket
 INSERT INTO storage.buckets (id, name, public)

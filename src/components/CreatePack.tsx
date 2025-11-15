@@ -166,7 +166,7 @@ export default function CreatePack() {
     if (!thumbnailFile || !user) return null;
 
     const fileExt = thumbnailFile.name.split('.').pop();
-    const fileName = `${user.id}/pack-thumbnails/${Date.now()}.${fileExt}`;
+    const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
 
     const { error } = await supabase.storage
       .from('pack-thumbnails')
