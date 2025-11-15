@@ -230,9 +230,16 @@ export default function UploadTexture() {
     }
   };
 
-  const uploadFile = async (file: File, bucket: string): Promise<string> => {
+  const uploadFile = async (file: File, bucket: string, uuid?: string): Promise<string> => {
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+    let fileName: string;
+    if (bucket === 'texture-thumbnails' && uuid) {
+      fileName = `thumbnail_texture_${uuid}_${Date.now()}.${fileExt}`;
+    } else if (bucket === 'textures' && uuid) {
+      fileName = `texture_${uuid}_${Date.now()}.${fileExt}`;
+    } else {
+      fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+    }
     const filePath = `${fileName}`;
 
     const { error: uploadError } = await supabase.storage
@@ -256,13 +263,16 @@ export default function UploadTexture() {
         throw new Error('Please upload both texture and thumbnail files');
       }
 
-      const textureUrl = await uploadFile(textureFile, 'textures');
-      const thumbnailUrl = await uploadFile(thumbnailFile, 'texture-thumbnails');
+      const textureId = crypto.randomUUID();
+
+      const textureUrl = await uploadFile(textureFile, 'textures', textureId);
+      const thumbnailUrl = await uploadFile(thumbnailFile, 'texture-thumbnails', textureId);
 
       const authorName = profile?.username || user?.id || 'Anonymous';
       const status = isTrusted ? 'approved' : 'pending';
 
       const { error: insertError } = await supabase.from('textures').insert({
+        id: textureId,
         user_id: user?.id || null,
         title: formData.title,
         description: formData.description,
