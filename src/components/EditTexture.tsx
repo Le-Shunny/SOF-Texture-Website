@@ -247,7 +247,7 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
         newTextureUrl = await uploadFile(textureFile, 'textures');
       }
       if (thumbnailFile) {
-        newThumbnailUrl = await uploadFile(thumbnailFile, 'thumbnails');
+        newThumbnailUrl = await uploadFile(thumbnailFile, 'texture-thumbnails');
       }
 
       // Update texture in database

@@ -169,7 +169,7 @@ export default function CreatePack() {
     const fileName = `${user.id}/pack-thumbnails/${Date.now()}.${fileExt}`;
 
     const { error } = await supabase.storage
-      .from('textures')
+      .from('pack-thumbnails')
       .upload(fileName, thumbnailFile);
 
     if (error) {
@@ -178,7 +178,7 @@ export default function CreatePack() {
     }
 
     const { data: { publicUrl } } = supabase.storage
-      .from('textures')
+      .from('pack-thumbnails')
       .getPublicUrl(fileName);
 
     return publicUrl;

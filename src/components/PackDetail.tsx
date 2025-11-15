@@ -181,7 +181,7 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
 
     try {
       // Delete the thumbnail file
-      await deleteTextureFiles('', localPack.thumbnail_url);
+      await deletePackThumbnail(localPack.thumbnail_url);
 
       // Delete the pack from database (cascade will handle related records)
       const { error } = await supabase

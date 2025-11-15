@@ -101,7 +101,7 @@ export async function deleteTextureFiles(textureUrl: string, thumbnailUrl: strin
     // Delete both files in parallel for better performance
     const results = await Promise.allSettled([
       deleteStorageFile(textureUrl, 'textures'),
-      deleteStorageFile(thumbnailUrl, 'thumbnails')
+      deleteStorageFile(thumbnailUrl, 'texture-thumbnails')
     ]);
 
     // Collect any errors but don't stop execution
@@ -135,6 +135,15 @@ export async function deleteTextureFiles(textureUrl: string, thumbnailUrl: strin
  * @param thumbnailUrl - The public URL of the thumbnail file
  * @returns Promise that resolves when complete deletion is done
  */
+/**
+ * Deletes a pack thumbnail file from storage
+ * @param thumbnailUrl - The public URL of the pack thumbnail file
+ * @returns Promise that resolves when the file is deleted
+ */
+export async function deletePackThumbnail(thumbnailUrl: string): Promise<void> {
+  await deleteStorageFile(thumbnailUrl, 'pack-thumbnails');
+}
+
 export async function deleteTextureCompletely(
   textureId: string,
   textureUrl: string,

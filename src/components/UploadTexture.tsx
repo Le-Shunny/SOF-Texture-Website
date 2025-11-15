@@ -257,7 +257,7 @@ export default function UploadTexture() {
       }
 
       const textureUrl = await uploadFile(textureFile, 'textures');
-      const thumbnailUrl = await uploadFile(thumbnailFile, 'thumbnails');
+      const thumbnailUrl = await uploadFile(thumbnailFile, 'texture-thumbnails');
 
       const authorName = profile?.username || user?.id || 'Anonymous';
       const status = isTrusted ? 'approved' : 'pending';
