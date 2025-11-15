@@ -26,3 +26,4 @@ dist-ssr
 .zencoder/*
 -p
 TODO.md
+migrate_texture_thumbnails.js

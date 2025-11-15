@@ -1,10 +1,11 @@
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
 
-// Load environment variables (assuming .env is set up)
-require('dotenv').config();
+// Load environment variables
+dotenv.config();
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY; // Use anon key for public operations
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Use service role key for admin operations
 
 if (!supabaseUrl || !supabaseKey) {
   console.error('Missing Supabase environment variables');
@@ -35,7 +36,7 @@ async function migrateThumbnails() {
     console.log(`Found ${files.length} files to migrate.`);
 
     for (const file of files) {
-      if (!file.name) continue;
+      if (!file.name || file.name === '.emptyFolderPlaceholder') continue;
 
       try {
         // Download the file from old bucket
