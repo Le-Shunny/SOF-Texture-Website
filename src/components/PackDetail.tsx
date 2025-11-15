@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase, Pack, PackComment, PackVote, Texture } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Download, ThumbsUp, ThumbsDown, MessageSquare, User, Package, Archive, X } from 'lucide-react';
+import { Download, ThumbsUp, ThumbsDown, MessageSquare, User, Package, Archive, X, Edit } from 'lucide-react';
 import JSZip from 'jszip';
+import EditPack from './EditPack';
 
 interface PackDetailProps {
   pack: Pack;
@@ -19,6 +20,7 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
   const [localPack, setLocalPack] = useState(pack);
   const [loading, setLoading] = useState(true);
   const [downloadingPack, setDownloadingPack] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     fetchPackData();
@@ -156,6 +158,18 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
     }
   };
 
+  const handleEditPack = () => {
+    setIsEditing(true);
+  };
+
+  const handleUpdatePack = (updatedPack: Pack) => {
+    setLocalPack(updatedPack);
+  };
+
+  const handleCloseEdit = () => {
+    setIsEditing(false);
+  };
+
   const downloadTexture = async (texture: Texture) => {
     try {
       const response = await fetch(texture.texture_url);
@@ -209,6 +223,16 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
     return <div className="text-center py-8">Loading pack details...</div>;
   }
 
+  if (isEditing) {
+    return (
+      <EditPack
+        pack={localPack}
+        onUpdate={handleUpdatePack}
+        onClose={handleCloseEdit}
+      />
+    );
+  }
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
@@ -243,6 +267,15 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
               </button>
             </div>
             <div className="flex items-center gap-4 pt-4">
+              {user && user.id === pack.user_id && (
+                <button
+                  onClick={handleEditPack}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                >
+                  <Edit className="w-5 h-5" />
+                  <span>Edit Pack</span>
+                </button>
+              )}
               <button
                 onClick={() => handleVote('upvote')}
                 disabled={loading}
