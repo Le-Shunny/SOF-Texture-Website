@@ -323,6 +323,14 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
                 </div>
 
                 <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">Updated</h3>
+                  <p className="text-gray-800 flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    {formatDate(localTexture.updated_at)}
+                  </p>
+                </div>
+
+                <div>
                   <h3 className="text-sm font-medium text-gray-500 mb-1">Downloads</h3>
                   <p className="text-gray-800 flex items-center gap-2">
                     <Download className="w-4 h-4" />
