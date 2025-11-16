@@ -274,8 +274,8 @@ export default function EditPack({ pack, onUpdate, onClose }: EditPackProps) {
   if (user && user.id !== pack.user_id) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-          <h2 className="text-xl font-bold mb-4">Access Denied</h2>
+      <div className="bg-[#cbd5e1] rounded-lg shadow-xl max-w-md w-full p-6">
+        <h2 className="text-xl font-bold mb-4">Access Denied</h2>
           <p className="text-gray-600 mb-4">You can only edit your own packs.</p>
           <button
             onClick={onClose}
@@ -290,7 +290,7 @@ export default function EditPack({ pack, onUpdate, onClose }: EditPackProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-[#cbd5e1] rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
         <div className="flex justify-between items-center p-4 border-b">
           <h1 className="text-xl font-bold">Edit Pack</h1>
           <button

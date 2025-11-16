@@ -321,7 +321,7 @@ export default function UploadTexture() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
+      <form onSubmit={handleSubmit} className="bg-[#cbd5e1] rounded-lg shadow-md p-6 space-y-6">
         <Dropzone
           onDrop={onTextureDrop}
           accept={{ 'image/png': ['.png'] }}

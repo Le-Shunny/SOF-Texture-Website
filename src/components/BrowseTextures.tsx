@@ -265,7 +265,7 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Browse {contentType === 'textures' ? 'Textures' : 'Packs'}</h1>
 
-        <div className="bg-white rounded-lg shadow-md">
+        <div className="bg-[#cbd5e1] rounded-lg shadow-md">
           <div className="p-4 border-b border-gray-200">
             <div className="flex mb-4">
               <button
@@ -505,7 +505,7 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
           {contentType === 'textures' && sortedTextures.map((texture) => (
             <div
               key={texture.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer"
+              className="bg-[#cbd5e1] rounded-lg shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer"
               onClick={() => onViewTexture(texture)}
             >
               <div className="flex flex-col sm:flex-row">
@@ -588,7 +588,7 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
           {contentType === 'packs' && sortedPacks.map((pack) => (
             <div
               key={pack.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer"
+              className="bg-[#cbd5e1] rounded-lg shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer"
               onClick={() => onViewPack(pack)}
             >
               <div className="flex flex-col sm:flex-row">

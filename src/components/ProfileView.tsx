@@ -117,7 +117,7 @@ export default function ProfileView({ username, onNavigate, onViewTexture }: Pro
           {textures.map((texture) => (
             <div
               key={texture.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer"
+              className="bg-[#cbd5e1] rounded-lg shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer"
               onClick={() => onViewTexture(texture)}
             >
               <div className="flex flex-col sm:flex-row">

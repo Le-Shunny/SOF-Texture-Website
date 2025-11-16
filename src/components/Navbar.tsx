@@ -155,7 +155,7 @@ export default function Navbar({ onNavigate, currentPage, onViewProfile }: Navba
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-t absolute top-full left-0 right-0 z-10 shadow-lg">
+          <div className="md:hidden bg-[#cbd5e1] border-t absolute top-full left-0 right-0 z-10 shadow-lg">
             <div className="px-2 pt-2 pb-3 space-y-1">
               <button
                 onClick={() => {

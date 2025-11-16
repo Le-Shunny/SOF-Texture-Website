@@ -164,7 +164,7 @@ export default function AdminPanel({ onViewTexture, onViewPack }: AdminPanelProp
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-gray-800">Admin Panel</h1>
 
-      <div className="bg-white rounded-lg shadow-md">
+      <div className="bg-[#cbd5e1] rounded-lg shadow-md">
         <button
           onClick={() => setPendingSectionExpanded(!pendingSectionExpanded)}
           className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition"
@@ -278,7 +278,7 @@ export default function AdminPanel({ onViewTexture, onViewPack }: AdminPanelProp
         )}
       </div>
 
-      <div className="bg-white rounded-lg shadow-md">
+      <div className="bg-[#cbd5e1] rounded-lg shadow-md">
         <button
           onClick={() => setPacksSectionExpanded(!packsSectionExpanded)}
           className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition"
@@ -371,7 +371,7 @@ export default function AdminPanel({ onViewTexture, onViewPack }: AdminPanelProp
         )}
       </div>
 
-      <div className="bg-white rounded-lg shadow-md">
+      <div className="bg-[#cbd5e1] rounded-lg shadow-md">
         <button
           onClick={() => setReportsSectionExpanded(!reportsSectionExpanded)}
           className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition"
@@ -394,7 +394,7 @@ export default function AdminPanel({ onViewTexture, onViewPack }: AdminPanelProp
         )}
       </div>
 
-      <div className="bg-white rounded-lg shadow-md">
+      <div className="bg-[#cbd5e1] rounded-lg shadow-md">
         <button
           onClick={() => setReportsSectionExpanded(!reportsSectionExpanded)}
           className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition"

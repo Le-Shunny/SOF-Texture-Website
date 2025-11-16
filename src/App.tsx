@@ -82,7 +82,7 @@ function App() {
 
   return (
     <AuthProvider>
-      <div className={`min-h-screen bg-gray-50 ${selectedTexture || editingTexture ? 'overflow-hidden' : ''}`}>
+      <div className={`min-h-screen bg-[#e2e9f1] ${selectedTexture || editingTexture ? 'overflow-hidden' : ''}`}>
         <div id="top-ad-placeholder" className="w-full h-0 bg-transparent" />
 
         <Navbar onNavigate={setCurrentPage} currentPage={currentPage} onViewProfile={handleViewProfile} />
@@ -116,7 +116,7 @@ function App() {
         {editingPack && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-60 overflow-y-auto">
             <div className="min-h-screen px-6 sm:px-4 py-8">
-              <div className="max-w-full lg:max-w-5xl mx-auto bg-white rounded-lg shadow-xl">
+              <div className="max-w-full lg:max-w-5xl mx-auto bg-[#cbd5e1] rounded-lg shadow-xl">
                 <EditPack
                   pack={editingPack}
                   onUpdate={handleUpdatePack}
