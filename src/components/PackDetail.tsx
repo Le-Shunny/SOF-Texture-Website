@@ -74,8 +74,9 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
   };
 
   const handleVote = async (voteType: 'upvote' | 'downvote') => {
-    console.log('Pack handleVote called with:', voteType, 'user:', user);
+    console.log('Pack handleVote called with:', voteType, 'user:', user, 'loading:', loading);
     if (!user) {
+      console.log('Pack: No user found, showing login alert');
       alert('Please login to vote');
       return;
     }
@@ -395,7 +396,10 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
 
                   <div className="flex items-center gap-4 pt-4">
                     <button
-                      onClick={() => handleVote('upvote')}
+                      onClick={() => {
+                        console.log('Pack upvote button clicked');
+                        handleVote('upvote');
+                      }}
                       disabled={loading}
                       className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${
                         userVote?.vote_type === 'upvote'
@@ -408,7 +412,10 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
                     </button>
 
                     <button
-                      onClick={() => handleVote('downvote')}
+                      onClick={() => {
+                        console.log('Pack downvote button clicked');
+                        handleVote('downvote');
+                      }}
                       disabled={loading}
                       className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${
                         userVote?.vote_type === 'downvote'

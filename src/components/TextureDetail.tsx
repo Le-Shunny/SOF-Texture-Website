@@ -69,8 +69,10 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
   };
 
   const handleVote = async (voteType: 'upvote' | 'downvote') => {
-    console.log('handleVote called with:', voteType, 'user:', user);
+    console.log('=== handleVote START ===', voteType);
+    console.log('user:', user, 'loading:', loading);
     if (!user) {
+      console.log('No user found, showing login alert');
       alert('Please login to vote');
       return;
     }
@@ -339,7 +341,10 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
 
                 <div className="flex items-center gap-4 pt-4">
                   <button
-                    onClick={() => handleVote('upvote')}
+                    onClick={() => {
+                      console.log('Upvote button clicked, loading:', loading);
+                      handleVote('upvote');
+                    }}
                     disabled={loading}
                     className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${
                       userVote?.vote_type === 'upvote'
@@ -352,7 +357,10 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
                   </button>
 
                   <button
-                    onClick={() => handleVote('downvote')}
+                    onClick={() => {
+                      console.log('Downvote button clicked');
+                      handleVote('downvote');
+                    }}
                     disabled={loading}
                     className={`flex items-center gap-2 px-4 py-2 rounded-md transition ${
                       userVote?.vote_type === 'downvote'
