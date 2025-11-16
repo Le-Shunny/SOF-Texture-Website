@@ -38,7 +38,7 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     setLoading(true);
     const { data, error } = await supabase
       .from('textures')
-      .select('*')
+      .select(`*, (select count(*)::int from votes where texture_id = textures.id and vote_type = 'upvote') as upvotes, (select count(*)::int from votes where texture_id = textures.id and vote_type = 'downvote') as downvotes`)
       .eq('status', 'approved')
       .order('created_at', { ascending: false });
 
@@ -52,7 +52,7 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     setLoading(true);
     const { data, error } = await supabase
       .from('packs')
-      .select('*')
+      .select(`*, (select count(*)::int from pack_votes where pack_id = packs.id and vote_type = 'upvote') as upvotes, (select count(*)::int from pack_votes where pack_id = packs.id and vote_type = 'downvote') as downvotes`)
       .eq('status', 'approved')
       .order('created_at', { ascending: false });
 
