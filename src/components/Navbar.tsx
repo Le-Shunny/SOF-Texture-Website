@@ -4,6 +4,7 @@ import { Menu, X, Upload, Search, User, LogOut, Shield, Settings, Package } from
 import Login from './Login';
 import Register from './Register';
 import UserProfile from './UserProfile';
+import SOF from '../assets/SOF.webp';
 
 interface NavbarProps {
   onNavigate: (page: string) => void;
@@ -31,9 +32,10 @@ export default function Navbar({ onNavigate, currentPage, onViewProfile }: Navba
             <div className="flex items-center">
               <button
                 onClick={() => onNavigate('browse')}
-                className="text-xl font-bold text-white hover:text-blue-600 transition"
+                className="flex items-center text-xl font-bold text-white hover:text-blue-600 transition"
               >
-                Texture Hub
+                <img src={SOF} alt="SOF Logo" className="h-6 object-contain mr-2" />
+                Textures
               </button>
             </div>
 
