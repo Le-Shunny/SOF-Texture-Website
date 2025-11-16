@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase, Texture, Pack } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Search, Download, Edit, Trash2, ThumbsUp, ThumbsDown, ArrowUpDown, User } from 'lucide-react';
+import { Search, Download, Edit, Trash2, ThumbsUp, ThumbsDown, ArrowUpDown, User, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface BrowseTexturesProps {
   onViewTexture: (texture: Texture) => void;
@@ -11,7 +11,18 @@ interface BrowseTexturesProps {
   onViewProfile: (username: string) => void;
 }
 
+type SortCategory = 'relevance' | 'upload_date' | 'update_date' | 'votes' | 'download_count';
+type SortDirection = 'asc' | 'desc';
 type SortOption = 'relevance' | 'newest' | 'oldest' | 'updated_newest' | 'updated_oldest' | 'upvotes_high' | 'downvotes_high' | 'downloads_high' | 'downloads_low';
+
+function getSortOption(category: SortCategory, direction: SortDirection): SortOption {
+  if (category === 'relevance') return 'relevance';
+  if (category === 'upload_date') return direction === 'desc' ? 'newest' : 'oldest';
+  if (category === 'update_date') return direction === 'desc' ? 'updated_newest' : 'updated_oldest';
+  if (category === 'votes') return direction === 'desc' ? 'upvotes_high' : 'downvotes_high'; // assuming votes mean upvotes, desc most, asc least
+  if (category === 'download_count') return direction === 'desc' ? 'downloads_high' : 'downloads_low';
+  return 'newest';
+}
 
 export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPack, onEditPack, onViewProfile }: BrowseTexturesProps) {
   const { user, isAdmin } = useAuth();
@@ -24,7 +35,8 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
   const [filterCategory, setFilterCategory] = useState<string[]>([]);
   const [filterType, setFilterType] = useState<string[]>([]);
   const [filtersExpanded, setFiltersExpanded] = useState(true);
-  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [sortCategory, setSortCategory] = useState<SortCategory>('upload_date');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   useEffect(() => {
     if (contentType === 'textures') {
@@ -161,26 +173,22 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     return matchesSearch && matchesAircraft && matchesCategory && matchesType;
   });
 
+  const sortBy = getSortOption(sortCategory, sortDirection);
+
   const sortedTextures = [...filteredTextures].sort((a, b) => {
-    switch (sortBy) {
+    switch (sortCategory) {
       case 'relevance':
         return calculateRelevance(b, searchTerm) - calculateRelevance(a, searchTerm);
-      case 'newest':
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      case 'oldest':
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      case 'updated_newest':
-        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-      case 'updated_oldest':
-        return new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
-      case 'upvotes_high':
-        return b.upvotes - a.upvotes;
-      case 'downvotes_high':
-        return b.downvotes - a.downvotes;
-      case 'downloads_high':
-        return b.download_count - a.download_count;
-      case 'downloads_low':
-        return a.download_count - b.download_count;
+      case 'upload_date':
+        return sortDirection === 'desc' ? new Date(b.created_at).getTime() - new Date(a.created_at).getTime() : new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case 'update_date':
+        return sortDirection === 'desc' ? new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime() : new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
+      case 'votes':
+        const aVotes = a.upvotes - a.downvotes;
+        const bVotes = b.upvotes - b.downvotes;
+        return sortDirection === 'desc' ? bVotes - aVotes : aVotes - bVotes;
+      case 'download_count':
+        return sortDirection === 'desc' ? b.download_count - a.download_count : a.download_count - b.download_count;
       default:
         return 0;
     }
@@ -201,17 +209,20 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
   });
 
   const sortedPacks = [...filteredPacks].sort((a, b) => {
-    switch (sortBy) {
+    switch (sortCategory) {
       case 'relevance':
         return calculatePackRelevance(b, searchTerm) - calculatePackRelevance(a, searchTerm);
-      case 'newest':
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      case 'oldest':
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      case 'upvotes_high':
-        return b.upvotes - a.upvotes;
-      case 'downvotes_high':
-        return b.downvotes - a.downvotes;
+      case 'upload_date':
+        return sortDirection === 'desc' ? new Date(b.created_at).getTime() - new Date(a.created_at).getTime() : new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case 'update_date':
+        return sortDirection === 'desc' ? new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime() : new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
+      case 'votes':
+        const aVotes = a.upvotes - a.downvotes;
+        const bVotes = b.upvotes - b.downvotes;
+        return sortDirection === 'desc' ? bVotes - aVotes : aVotes - bVotes;
+      case 'download_count':
+        // Packs don't have download_count, sort by upvotes instead
+        return sortDirection === 'desc' ? b.upvotes - a.upvotes : a.upvotes - b.upvotes;
       default:
         return 0;
     }
@@ -297,23 +308,66 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              <div className="flex items-center gap-2">
-                <ArrowUpDown className="w-5 h-5 text-gray-400" />
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                <div className="flex flex-wrap gap-1">
+                  <button
+                    onClick={() => setSortCategory('relevance')}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                      sortCategory === 'relevance'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Relevance
+                  </button>
+                  <button
+                    onClick={() => setSortCategory('upload_date')}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                      sortCategory === 'upload_date'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Upload Date
+                  </button>
+                  <button
+                    onClick={() => setSortCategory('update_date')}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                      sortCategory === 'update_date'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Update Date
+                  </button>
+                  <button
+                    onClick={() => setSortCategory('votes')}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                      sortCategory === 'votes'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Votes
+                  </button>
+                  <button
+                    onClick={() => setSortCategory('download_count')}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                      sortCategory === 'download_count'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Download Count
+                  </button>
+                </div>
+                <button
+                  onClick={() => setSortDirection(sortDirection === 'desc' ? 'asc' : 'desc')}
+                  className="flex items-center gap-1 px-2 py-1 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
                 >
-                  <option value="relevance">Relevance</option>
-                  <option value="newest">Newest First</option>
-                  <option value="oldest">Oldest First</option>
-                  <option value="updated_newest">Recently Updated</option>
-                  <option value="updated_oldest">Least Recently Updated</option>
-                  <option value="upvotes_high">Most Upvoted</option>
-                  <option value="downvotes_high">Most Downvoted</option>
-                  <option value="downloads_high">Most Downloaded</option>
-                  <option value="downloads_low">Least Downloaded</option>
-                </select>
+                  {sortDirection === 'desc' ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                  {sortDirection === 'desc' ? 'High to Low' : 'Low to High'}
+                </button>
               </div>
               {contentType === 'textures' && (
                 <button
