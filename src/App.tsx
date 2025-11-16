@@ -96,7 +96,7 @@ function App() {
           {currentPage === 'edit' && editingTexture && <EditTexture texture={editingTexture} onUpdate={handleUpdateTexture} onNavigate={setCurrentPage} />}
           {currentPage === 'admin' && <AdminPanel onViewTexture={handleViewTexture} onViewPack={handleViewPack} />}
           {currentPage === 'profile' && profileUsername && (
-            <ProfileView username={profileUsername} onNavigate={setCurrentPage} onViewTexture={handleViewTexture} />
+            <ProfileView username={profileUsername} onNavigate={setCurrentPage} onViewTexture={handleViewTexture} onViewPack={handleViewPack} />
           )}
         </main>
 
