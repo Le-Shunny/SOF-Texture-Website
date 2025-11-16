@@ -74,12 +74,14 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
   };
 
   const handleVote = async (voteType: 'upvote' | 'downvote') => {
+    console.log('Pack handleVote called with:', voteType, 'user:', user);
     if (!user) {
       alert('Please login to vote');
       return;
     }
 
     setLoading(true);
+    console.log('Starting pack vote operation...');
 
     try {
       if (userVote) {
@@ -134,6 +136,7 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
     } catch (error) {
       console.error('Error voting:', error);
     } finally {
+      console.log('Pack vote operation completed');
       setLoading(false);
     }
   };

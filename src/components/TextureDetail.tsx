@@ -69,12 +69,14 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
   };
 
   const handleVote = async (voteType: 'upvote' | 'downvote') => {
+    console.log('handleVote called with:', voteType, 'user:', user);
     if (!user) {
       alert('Please login to vote');
       return;
     }
 
     setLoading(true);
+    console.log('Starting vote operation...');
 
     try {
       if (userVote) {
@@ -129,6 +131,7 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
     } catch (error) {
       console.error('Error voting:', error);
     } finally {
+      console.log('Vote operation completed');
       setLoading(false);
     }
   };
