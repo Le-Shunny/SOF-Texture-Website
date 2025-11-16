@@ -34,7 +34,7 @@ export default function Navbar({ onNavigate, currentPage, onViewProfile }: Navba
                 onClick={() => onNavigate('browse')}
                 className="flex items-center text-xl font-bold text-white hover:text-blue-600 transition"
               >
-                <img src={SOF} alt="SOF Logo" className="h-8 object-contain mr-4" />
+                <img src={SOF} alt="SOF Logo" className="h-12 object-contain mr-8" />
                 Textures
               </button>
             </div>
