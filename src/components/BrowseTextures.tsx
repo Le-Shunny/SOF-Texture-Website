@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase, Texture, Pack } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Search, Download, Edit, Trash2, ThumbsUp, ThumbsDown, ArrowUpDown, User, ChevronUp, ChevronDown } from 'lucide-react';
+import { Search, Download, Edit, Trash2, ThumbsUp, ThumbsDown, User, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface BrowseTexturesProps {
   onViewTexture: (texture: Texture) => void;
@@ -13,16 +13,7 @@ interface BrowseTexturesProps {
 
 type SortCategory = 'relevance' | 'upload_date' | 'update_date' | 'votes' | 'download_count';
 type SortDirection = 'asc' | 'desc';
-type SortOption = 'relevance' | 'newest' | 'oldest' | 'updated_newest' | 'updated_oldest' | 'upvotes_high' | 'downvotes_high' | 'downloads_high' | 'downloads_low';
 
-function getSortOption(category: SortCategory, direction: SortDirection): SortOption {
-  if (category === 'relevance') return 'relevance';
-  if (category === 'upload_date') return direction === 'desc' ? 'newest' : 'oldest';
-  if (category === 'update_date') return direction === 'desc' ? 'updated_newest' : 'updated_oldest';
-  if (category === 'votes') return direction === 'desc' ? 'upvotes_high' : 'downvotes_high'; // assuming votes mean upvotes, desc most, asc least
-  if (category === 'download_count') return direction === 'desc' ? 'downloads_high' : 'downloads_low';
-  return 'newest';
-}
 
 export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPack, onEditPack, onViewProfile }: BrowseTexturesProps) {
   const { user, isAdmin } = useAuth();
@@ -35,6 +26,7 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
   const [filterCategory, setFilterCategory] = useState<string[]>([]);
   const [filterType, setFilterType] = useState<string[]>([]);
   const [filtersExpanded, setFiltersExpanded] = useState(true);
+  const [sortExpanded, setSortExpanded] = useState(true);
   const [sortCategory, setSortCategory] = useState<SortCategory>('upload_date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
@@ -173,8 +165,6 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     return matchesSearch && matchesAircraft && matchesCategory && matchesType;
   });
 
-  const sortBy = getSortOption(sortCategory, sortDirection);
-
   const sortedTextures = [...filteredTextures].sort((a, b) => {
     switch (sortCategory) {
       case 'relevance':
@@ -183,10 +173,11 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
         return sortDirection === 'desc' ? new Date(b.created_at).getTime() - new Date(a.created_at).getTime() : new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
       case 'update_date':
         return sortDirection === 'desc' ? new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime() : new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
-      case 'votes':
+      case 'votes': {
         const aVotes = a.upvotes - a.downvotes;
         const bVotes = b.upvotes - b.downvotes;
         return sortDirection === 'desc' ? bVotes - aVotes : aVotes - bVotes;
+      }
       case 'download_count':
         return sortDirection === 'desc' ? b.download_count - a.download_count : a.download_count - b.download_count;
       default:
@@ -216,10 +207,11 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
         return sortDirection === 'desc' ? new Date(b.created_at).getTime() - new Date(a.created_at).getTime() : new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
       case 'update_date':
         return sortDirection === 'desc' ? new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime() : new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
-      case 'votes':
+      case 'votes': {
         const aVotes = a.upvotes - a.downvotes;
         const bVotes = b.upvotes - b.downvotes;
         return sortDirection === 'desc' ? bVotes - aVotes : aVotes - bVotes;
+      }
       case 'download_count':
         // Packs don't have download_count, sort by upvotes instead
         return sortDirection === 'desc' ? b.upvotes - a.upvotes : a.upvotes - b.upvotes;
@@ -309,7 +301,22 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
                 />
               </div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                <div className="flex flex-wrap gap-1">
+                <button
+                  onClick={() => setSortExpanded(!sortExpanded)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                >
+                  <span>Sort</span>
+                  <svg
+                    className={`w-4 h-4 transition-transform ${sortExpanded ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {sortExpanded && (
+                  <div className="flex flex-wrap gap-1">
                   <button
                     onClick={() => setSortCategory('relevance')}
                     className={`px-3 py-1 text-sm rounded-md transition-colors ${
@@ -360,14 +367,15 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
                   >
                     Download Count
                   </button>
+                  <button
+                    onClick={() => setSortDirection(sortDirection === 'desc' ? 'asc' : 'desc')}
+                    className="flex items-center gap-1 px-2 py-1 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
+                  >
+                    {sortDirection === 'desc' ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                    {sortDirection === 'desc' ? 'High to Low' : 'Low to High'}
+                  </button>
                 </div>
-                <button
-                  onClick={() => setSortDirection(sortDirection === 'desc' ? 'asc' : 'desc')}
-                  className="flex items-center gap-1 px-2 py-1 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
-                >
-                  {sortDirection === 'desc' ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-                  {sortDirection === 'desc' ? 'High to Low' : 'Low to High'}
-                </button>
+                )}
               </div>
               {contentType === 'textures' && (
                 <button
