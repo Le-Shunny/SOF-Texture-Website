@@ -44,7 +44,7 @@ export default function Navbar({ onNavigate, currentPage, onViewProfile }: Navba
                 onClick={() => onNavigate('browse')}
                 className={`flex items-center px-3 py-2 rounded-md transition ${
                   currentPage === 'browse'
-                    ? 'bg-blue-100 text-blue-600'
+                    ? 'bg-yellow-100 text-yellow-600'
                     : 'text-white hover:bg-gray-700'
                 }`}
               >
@@ -57,7 +57,7 @@ export default function Navbar({ onNavigate, currentPage, onViewProfile }: Navba
                   onClick={() => onNavigate('upload')}
                   className={`flex items-center px-3 py-2 rounded-md transition ${
                     currentPage === 'upload'
-                      ? 'bg-blue-100 text-blue-600'
+                      ? 'bg-yellow-100 text-yellow-600'
                       : 'text-white hover:bg-gray-700'
                   }`}
                 >
@@ -71,7 +71,7 @@ export default function Navbar({ onNavigate, currentPage, onViewProfile }: Navba
                   onClick={() => onNavigate('create-pack')}
                   className={`flex items-center px-3 py-2 rounded-md transition ${
                     currentPage === 'create-pack'
-                      ? 'bg-blue-100 text-blue-600'
+                      ? 'bg-yellow-100 text-yellow-600'
                       : 'text-white hover:bg-gray-700'
                   }`}
                 >
@@ -85,7 +85,7 @@ export default function Navbar({ onNavigate, currentPage, onViewProfile }: Navba
                   onClick={() => onNavigate('admin')}
                   className={`flex items-center px-3 py-2 rounded-md transition ${
                     currentPage === 'admin'
-                      ? 'bg-blue-100 text-blue-600'
+                      ? 'bg-yellow-100 text-yellow-600'
                       : 'text-white hover:bg-gray-700'
                   }`}
                 >
@@ -98,7 +98,7 @@ export default function Navbar({ onNavigate, currentPage, onViewProfile }: Navba
                 <div className="flex items-center space-x-3">
                   <button
                     onClick={() => onViewProfile && profile?.username && onViewProfile(profile.username)}
-                    className="text-sm text-white hover:text-blue-200 underline"
+                    className="text-sm text-white hover:text-yellow-200"
                   >
                     {profile?.username}
                   </button>

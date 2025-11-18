@@ -257,7 +257,7 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${texture.title}.zip`;
+      a.download = `${texture.title}.png`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
