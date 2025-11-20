@@ -274,6 +274,7 @@ export default function CreatePack() {
               Description
             </label>
             <textarea
+              placeholder="Tell us about your pack, you can put #tags here too!"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}

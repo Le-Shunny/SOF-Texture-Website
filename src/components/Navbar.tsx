@@ -148,7 +148,7 @@ export default function Navbar({ onNavigate, currentPage, onViewProfile }: Navba
             <div className="md:hidden flex items-center">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="text-gray-700 hover:text-gray-900"
+                className="text-white hover:text-gray-300"
               >
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
