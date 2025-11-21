@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase, Texture, Pack } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { processText } from '../lib/utils';
 import { Search, Download, Edit, Trash2, ThumbsUp, ThumbsDown, User, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface BrowseTexturesProps {
@@ -606,7 +607,7 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex-1 min-w-0">
                       <h3 className="text-lg font-semibold text-gray-900 truncate">{pack.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">{pack.description}</p>
+                      <p className="text-sm text-gray-600 mt-1 line-clamp-2" dangerouslySetInnerHTML={{ __html: processText(pack.description) }}></p>
                       <div className="flex items-center mt-2">
                         <User className="w-4 h-4 mr-1" />
                         <button

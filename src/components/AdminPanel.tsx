@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase, Texture, Pack } from '../lib/supabase';
+import { processText } from '../lib/utils';
 import { Check, X, Eye, Trash2, ChevronDown, ChevronUp, Hourglass, AlertTriangle } from 'lucide-react';
 import ReportedTextures from './ReportedTextures';
 import ReportedPacks from './ReportedPacks';
@@ -324,8 +325,7 @@ export default function AdminPanel({ onViewTexture, onViewPack }: AdminPanelProp
                         <p className="text-sm text-gray-600 mb-2">by {pack.author}</p>
 
                         {pack.description && (
-                          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                            {pack.description}
+                          <p className="text-sm text-gray-600 mb-3 line-clamp-2" dangerouslySetInnerHTML={{ __html: processText(pack.description) }}>
                           </p>
                         )}
 

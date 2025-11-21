@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase, Texture, Comment, Vote } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { formatNumber } from '../lib/utils';
+import { formatNumber, processText } from '../lib/utils';
 import {
   X,
   Download,
@@ -443,7 +443,7 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
             {localTexture.description && (
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">Description</h3>
-                <p className="text-gray-600 whitespace-pre-wrap">{localTexture.description}</p>
+                <p className="text-gray-600 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: processText(localTexture.description) }}></p>
               </div>
             )}
 
@@ -495,7 +495,7 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
                         </button>
                       )}
                     </div>
-                    <p className="text-gray-700">{comment.content}</p>
+                    <p className="text-gray-700" dangerouslySetInnerHTML={{ __html: processText(comment.content) }}></p>
                   </div>
                 ))}
 
