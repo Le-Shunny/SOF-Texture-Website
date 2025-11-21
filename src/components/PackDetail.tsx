@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Download, ThumbsUp, ThumbsDown, MessageSquare, User, Package, Archive, X, Edit, Calendar, Hash, Trash2, Flag } from 'lucide-react';
 import JSZip from 'jszip';
 import EditPack from './EditPack';
+import TextureDetail from './TextureDetail';
 import { deleteStorageFile } from '../lib/storageUtils';
 
 interface PackDetailProps {
@@ -26,6 +27,7 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportCategory, setReportCategory] = useState<'inappropriate_content' | 'theft' | 'other'>('inappropriate_content');
   const [reportReason, setReportReason] = useState('');
+  const [selectedTexture, setSelectedTexture] = useState<Texture | null>(null);
 
   useEffect(() => {
     fetchPackData();
@@ -475,7 +477,7 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {textures.map((texture) => (
-                    <div key={texture.id} className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition" onClick={() => onViewTexture(texture)}>
+                    <div key={texture.id} className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition" onClick={() => setSelectedTexture(texture)}>
                       <img
                         src={texture.thumbnail_url}
                         alt={texture.title}
@@ -622,6 +624,16 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {selectedTexture && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[70] overflow-y-auto">
+          <TextureDetail
+            texture={selectedTexture}
+            onClose={() => setSelectedTexture(null)}
+            onViewProfile={onViewProfile}
+          />
         </div>
       )}
     </>
