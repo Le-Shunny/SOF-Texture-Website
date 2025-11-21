@@ -566,7 +566,7 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
                       {user && texture.user_id === user.id && (
                         <button
                           onClick={() => onEditTexture(texture)}
-                          className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                          className="flex items-center gap-2 px-3 py-1 text-sm bg-grey-600 text-white rounded hover:bg-blue-700"
                         >
                           <Edit className="w-4 h-4" />
                           Edit
