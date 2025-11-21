@@ -145,6 +145,10 @@ export default function UploadTexture() {
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [texturePreview, setTexturePreview] = useState<string | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const placeholdertext: string = `Tell us about your texture, you can put #tags here too!
+  Embed examples: 
+  https://i.imgur.com/example.png 
+  https://www.youtube.com/watch?v=example (youtu.be links work too!)`;
 
   useEffect(() => {
     // Revoke object URLs on unmount to prevent memory leaks
@@ -361,7 +365,7 @@ export default function UploadTexture() {
             Description
           </label>
           <textarea
-            placeholder="Tell us about your texture, you can put #tags here too!\n Embed examples:\n https://i.imgur.com/example.png\n https://www.youtube.com/watch?v=example (youtu.be links work too!)"
+            placeholder={placeholdertext}
             id="description"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
