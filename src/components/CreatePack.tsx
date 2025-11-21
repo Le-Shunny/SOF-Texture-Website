@@ -124,7 +124,10 @@ export default function CreatePack() {
       setAvailableTextures(data);
     }
   };
-
+  const placeholdertext: string = `Tell us about your texture, you can put #tags here too!
+  Embed examples: 
+  https://i.imgur.com/example.png 
+  https://www.youtube.com/watch?v=example (youtu.be links work too!)`
   const onThumbnailDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
@@ -284,7 +287,7 @@ export default function CreatePack() {
               Description
             </label>
             <textarea
-              placeholder="Tell us about your texture, you can put #tags here too!\n Embed examples:\n https://i.imgur.com/example.png\n https://www.youtube.com/watch?v=example (youtu.be links work too!)"
+              placeholder={placeholdertext}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
