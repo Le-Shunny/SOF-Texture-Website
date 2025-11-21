@@ -275,6 +275,9 @@ CREATE TRIGGER update_textures_updated_at BEFORE UPDATE ON textures
 CREATE TRIGGER update_texture_comments_updated_at BEFORE UPDATE ON texture_comments
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_pack_comments_updated_at BEFORE UPDATE ON pack_comments
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- Migration to add automatic file deletion when textures are deleted
 -- This serves as a backup mechanism to ensure files are cleaned up
 
@@ -724,7 +727,12 @@ CREATE TABLE IF NOT EXISTS pack_reports (
   updated_at timestamptz DEFAULT now()
 );
 
--- Create indexes for better query performance
+-- Create indexes for pack_comments
+CREATE INDEX IF NOT EXISTS idx_pack_comments_pack_id ON pack_comments(pack_id);
+CREATE INDEX IF NOT EXISTS idx_pack_comments_user_id ON pack_comments(user_id);
+CREATE INDEX IF NOT EXISTS idx_pack_comments_created_at ON pack_comments(created_at DESC);
+
+-- Create indexes for pack_reports
 CREATE INDEX IF NOT EXISTS idx_pack_reports_pack_id ON pack_reports(pack_id);
 CREATE INDEX IF NOT EXISTS idx_pack_reports_reporter_id ON pack_reports(reporter_id);
 CREATE INDEX IF NOT EXISTS idx_pack_reports_created_at ON pack_reports(created_at DESC);

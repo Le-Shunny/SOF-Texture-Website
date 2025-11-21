@@ -53,7 +53,7 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
       .from('pack_comments')
       .select('*')
       .eq('pack_id', pack.id)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: false });
 
     if (!commentsError && commentsData) {
       setComments(commentsData);
