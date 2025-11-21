@@ -28,3 +28,8 @@ dist-ssr
 TODO.md
 migrate_texture_thumbnails.js
 supabase/migrations/20231201000000_add_pack_comments.sql
+
+IMPLEMENTATION_VERIFICATION.md
+MEDIA_SUPPORT_IMPLEMENTATION.md
+.gitignore
+supabase/migrations/20250121000000_add_multiple_media.sql
