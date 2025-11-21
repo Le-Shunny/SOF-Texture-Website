@@ -104,7 +104,7 @@ function App() {
           <TextureDetail texture={selectedTexture} onClose={handleCloseDetail} onEdit={handleEditTexture} onViewProfile={handleViewProfile} />
         )}
         {selectedPack && (
-          <PackDetail pack={selectedPack} onClose={handleCloseDetail} onViewProfile={handleViewProfile} />
+          <PackDetail pack={selectedPack} onClose={handleCloseDetail} onViewProfile={handleViewProfile} onViewTexture={handleViewTexture} />
         )}
 
         {editingTexture && currentPage !== 'edit' && (

@@ -10,9 +10,10 @@ interface PackDetailProps {
   pack: Pack;
   onClose: () => void;
   onViewProfile: (username: string) => void;
+  onViewTexture: (texture: Texture) => void;
 }
 
-export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailProps) {
+export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture }: PackDetailProps) {
   const { user, isAdmin } = useAuth();
   const [textures, setTextures] = useState<Texture[]>([]);
   const [comments, setComments] = useState<PackComment[]>([]);
@@ -482,11 +483,13 @@ export default function PackDetail({ pack, onClose, onViewProfile }: PackDetailP
                       />
                       <h3 className="font-medium">{texture.title}</h3>
                       <p className="text-sm text-gray-600 mb-2">
-                        {texture.aircraft} - {texture.category}
+                        <button onClick={() => onViewTexture(texture)} className="text-blue-600 hover:text-blue-800 underline">
+                          {texture.aircraft}
+                        </button> - {texture.category}
                       </p>
                       <button
                         onClick={() => downloadTexture(texture)}
-                        className="flex items-center space-x-1 text-blue-600 hover:text-blue-800"
+                        className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
                       >
                         <Download className="w-4 h-4" />
                         <span>Download</span>
