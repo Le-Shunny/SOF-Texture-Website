@@ -125,9 +125,9 @@ export default function CreatePack() {
     }
   };
   const placeholdertext: string = `Tell us about your texture, you can put #tags here too!
-  Embed examples: 
-  https://i.imgur.com/example.png 
-  https://www.youtube.com/watch?v=example (youtu.be links work too!)`
+Embed examples: 
+https://i.imgur.com/example.png 
+https://www.youtube.com/watch?v=example (youtu.be links work too!)`
   const onThumbnailDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
