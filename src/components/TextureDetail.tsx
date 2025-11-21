@@ -181,6 +181,25 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
     }
   };
 
+  const handleDeleteTexture = async () => {
+    if (!confirm('Are you sure you want to delete this texture? This action cannot be undone.')) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.from('textures').delete().eq('id', texture.id);
+
+      if (error) throw error;
+
+      alert('Texture deleted successfully.');
+      onClose();
+    } catch (error) {
+      console.error('Error deleting texture:', error);
+      alert('Failed to delete texture. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDownload = async () => {
     try {
       const response = await fetch(localTexture.texture_url);
@@ -405,6 +424,17 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
                   >
                     <Edit className="w-5 h-5" />
                     Edit Texture
+                  </button>
+                )}
+
+                {user && texture.user_id === user.id && (
+                  <button
+                    onClick={handleDeleteTexture}
+                    disabled={loading}
+                    className="flex items-center justify-center gap-2 w-full bg-red-600 text-white py-3 px-4 rounded-md hover:bg-red-700 transition disabled:opacity-50"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                    Delete Texture
                   </button>
                 )}
               </div>
