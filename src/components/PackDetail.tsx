@@ -475,7 +475,7 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {textures.map((texture) => (
-                    <div key={texture.id} className="border rounded-lg p-4">
+                    <div key={texture.id} className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition" onClick={() => onViewTexture(texture)}>
                       <img
                         src={texture.thumbnail_url}
                         alt={texture.title}
@@ -483,12 +483,10 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
                       />
                       <h3 className="font-medium">{texture.title}</h3>
                       <p className="text-sm text-gray-600 mb-2">
-                        <button onClick={() => onViewTexture(texture)} className="text-blue-600 hover:text-blue-800 underline">
-                          {texture.aircraft}
-                        </button> - {texture.category}
+                        {texture.aircraft} - {texture.category}
                       </p>
                       <button
-                        onClick={() => downloadTexture(texture)}
+                        onClick={(e) => { e.stopPropagation(); downloadTexture(texture); }}
                         className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
                       >
                         <Download className="w-4 h-4" />
