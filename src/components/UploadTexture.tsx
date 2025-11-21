@@ -361,7 +361,7 @@ export default function UploadTexture() {
             Description
           </label>
           <textarea
-            placeholder="Tell us about your texture, you can put #tags here too!"
+            placeholder="Tell us about your texture, you can put #tags here too!\n Embed examples:\n https://i.imgur.com/example.png\n https://www.youtube.com/watch?v=example (youtu.be links work too!)"
             id="description"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
