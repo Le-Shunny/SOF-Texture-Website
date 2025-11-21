@@ -146,9 +146,9 @@ export default function UploadTexture() {
   const [texturePreview, setTexturePreview] = useState<string | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const placeholdertext: string = `Tell us about your texture, you can put #tags here too!
-  Embed examples: 
-  https://i.imgur.com/example.png 
-  https://www.youtube.com/watch?v=example (youtu.be links work too!)`;
+Embed examples: 
+https://i.imgur.com/example.png 
+https://www.youtube.com/watch?v=example (youtu.be links work too!)`;
 
   useEffect(() => {
     // Revoke object URLs on unmount to prevent memory leaks
