@@ -276,21 +276,10 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
     try {
       const zip = new JSZip();
 
-      // Add each texture to the zip
       for (const texture of textures) {
-        try {
-          const response = await fetch(texture.texture_url);
-          const blob = await response.blob();
-          zip.file(`${texture.title}.png`, blob);
-
-          // Increment download count for each texture
-          await supabase
-            .from('textures')
-            .update({ download_count: texture.download_count + 1 })
-            .eq('id', texture.id);
-        } catch (error) {
-          console.error(`Error adding texture ${texture.title} to zip:`, error);
-        }
+        const response = await fetch(texture.texture_url);
+        const blob = await response.blob();
+        zip.file(`${texture.title}.png`, blob);
       }
 
       const content = await zip.generateAsync({ type: 'blob' });
@@ -307,6 +296,7 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
     }
     setDownloadingPack(false);
   };
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
