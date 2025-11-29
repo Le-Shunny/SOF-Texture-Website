@@ -15,6 +15,9 @@ import {
   Flag,
   Hash,
 } from 'lucide-react';
+import Turnstile from 'react-turnstile';
+
+const CLOUDFLARE_SITE_KEY = import.meta.env.VITE_CLOUDFLARE_SITE_KEY;
 
 interface TextureDetailProps {
   texture: Texture;
@@ -33,7 +36,8 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportCategory, setReportCategory] = useState<'inappropriate_content' | 'theft' | 'other'>('inappropriate_content');
   const [reportReason, setReportReason] = useState('');
-  const [agreeToCloudflare, setAgreeToCloudflare] = useState(false);
+  const [downloadTurnstileToken, setDownloadTurnstileToken] = useState<string>('');
+  const [reportTurnstileToken, setReportTurnstileToken] = useState<string>('');
 
   useEffect(() => {
     fetchComments();
@@ -202,6 +206,11 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
   };
 
   const handleDownload = async () => {
+    if (!downloadTurnstileToken) {
+      alert('Please complete the captcha to download');
+      return;
+    }
+
     try {
       const response = await fetch(localTexture.texture_url);
       const blob = await response.blob();
@@ -233,6 +242,11 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
     e.preventDefault();
     if (!user) {
       alert('Please login to report textures');
+      return;
+    }
+
+    if (!reportTurnstileToken) {
+      alert('Please complete the captcha to report');
       return;
     }
 
@@ -400,22 +414,44 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
                   </button>
                 </div>
 
+                <div className="flex justify-center mb-4">
+                  <Turnstile
+                    sitekey={CLOUDFLARE_SITE_KEY}
+                    onVerify={(token: string) => setDownloadTurnstileToken(token)}
+                    onError={() => alert('Captcha verification failed')}
+                    onExpire={() => setDownloadTurnstileToken('')}
+                  />
+                </div>
+
                 <button
                   onClick={handleDownload}
-                  className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition"
+                  disabled={!downloadTurnstileToken}
+                  className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Download className="w-5 h-5" />
                   Download Texture
                 </button>
 
                 {user && (
-                  <button
-                    onClick={() => setShowReportModal(true)}
-                    className="flex items-center justify-center gap-2 w-full bg-orange-600 text-white py-3 px-4 rounded-md hover:bg-orange-700 transition"
-                  >
-                    <Flag className="w-5 h-5" />
-                    Report Texture
-                  </button>
+                  <>
+                    <div className="flex justify-center mb-4">
+                      <Turnstile
+                        sitekey={CLOUDFLARE_SITE_KEY}
+                        onVerify={(token: string) => setReportTurnstileToken(token)}
+                        onError={() => alert('Captcha verification failed')}
+                        onExpire={() => setReportTurnstileToken('')}
+                      />
+                    </div>
+
+                    <button
+                      onClick={() => setShowReportModal(true)}
+                      disabled={!reportTurnstileToken}
+                      className="flex items-center justify-center gap-2 w-full bg-orange-600 text-white py-3 px-4 rounded-md hover:bg-orange-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Flag className="w-5 h-5" />
+                      Report Texture
+                    </button>
+                  </>
                 )}
 
                 {user && texture.user_id === user.id && onEdit && (

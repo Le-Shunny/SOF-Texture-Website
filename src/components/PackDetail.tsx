@@ -7,6 +7,9 @@ import EditPack from './EditPack';
 import TextureDetail from './TextureDetail';
 import { deleteStorageFile } from '../lib/storageUtils';
 import { processText } from '../lib/utils';
+import Turnstile from 'react-turnstile';
+
+const CLOUDFLARE_SITE_KEY = import.meta.env.VITE_CLOUDFLARE_SITE_KEY;
 
 interface PackDetailProps {
   pack: Pack;
@@ -29,7 +32,8 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
   const [reportCategory, setReportCategory] = useState<'inappropriate_content' | 'theft' | 'other'>('inappropriate_content');
   const [reportReason, setReportReason] = useState('');
   const [selectedTexture, setSelectedTexture] = useState<Texture | null>(null);
-  const [agreeToCloudflare, setAgreeToCloudflare] = useState(false);
+  const [downloadPackTurnstileToken, setDownloadPackTurnstileToken] = useState<string>('');
+  const [reportPackTurnstileToken, setReportPackTurnstileToken] = useState<string>('');
 
   useEffect(() => {
     fetchPackData();
@@ -227,6 +231,11 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
       return;
     }
 
+    if (!reportPackTurnstileToken) {
+      alert('Please complete the captcha to report');
+      return;
+    }
+
     if (!reportReason.trim()) {
       alert('Please provide a reason for the report');
       return;
@@ -255,40 +264,12 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
     }
   };
 
-  const downloadTexture = async (texture: Texture) => {
-    try {
-      const response = await fetch(texture.texture_url);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${texture.title}.png`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
 
-      // Increment download count
-      await supabase
-        .from('textures')
-        .update({ download_count: texture.download_count + 1 })
-        .eq('id', texture.id);
-    } catch (error) {
-      console.error('Error downloading texture:', error);
-    }
-  };
 
   const downloadPack = async () => {
     setDownloadingPack(true);
     try {
       const zip = new JSZip();
-
-      for (const texture of textures) {
-        const response = await fetch(texture.texture_url);
-        const blob = await response.blob();
-        zip.file(`${texture.title}.png`, blob);
-      }
-
       const content = await zip.generateAsync({ type: 'blob' });
       const url = window.URL.createObjectURL(content);
       const a = document.createElement('a');
@@ -432,23 +413,44 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
                     </button>
                   </div>
 
+                  <div className="flex justify-center mb-4">
+                    <Turnstile
+                      sitekey={CLOUDFLARE_SITE_KEY}
+                      onVerify={(token: string) => setDownloadPackTurnstileToken(token)}
+                      onError={() => alert('Captcha verification failed')}
+                      onExpire={() => setDownloadPackTurnstileToken('')}
+                    />
+                  </div>
+
                   <button
                     onClick={downloadPack}
-                    disabled={downloadingPack}
-                    className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition"
+                    disabled={downloadingPack || !downloadPackTurnstileToken}
+                    className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Archive className="w-5 h-5" />
                     {downloadingPack ? 'Downloading...' : 'Download Pack'}
                   </button>
 
                   {user && (
-                    <button
-                      onClick={() => setShowReportModal(true)}
-                      className="flex items-center justify-center gap-2 w-full bg-orange-600 text-white py-3 px-4 rounded-md hover:bg-orange-700 transition"
-                    >
-                      <Flag className="w-5 h-5" />
-                      Report Pack
-                    </button>
+                    <>
+                      <div className="flex justify-center mb-4">
+                        <Turnstile
+                          sitekey={CLOUDFLARE_SITE_KEY}
+                          onVerify={(token: string) => setReportPackTurnstileToken(token)}
+                          onError={() => alert('Captcha verification failed')}
+                          onExpire={() => setReportPackTurnstileToken('')}
+                        />
+                      </div>
+
+                      <button
+                        onClick={() => setShowReportModal(true)}
+                        disabled={!reportPackTurnstileToken}
+                        className="flex items-center justify-center gap-2 w-full bg-orange-600 text-white py-3 px-4 rounded-md hover:bg-orange-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Flag className="w-5 h-5" />
+                        Report Pack
+                      </button>
+                    </>
                   )}
 
                   {user && user.id === localPack.user_id && (
@@ -486,16 +488,9 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
                         className="w-full h-32 object-cover rounded mb-2"
                       />
                       <h3 className="font-medium">{texture.title}</h3>
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className="text-sm text-gray-600">
                         {texture.aircraft} - {texture.category}
                       </p>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); downloadTexture(texture); }}
-                        className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
-                      >
-                        <Download className="w-4 h-4" />
-                        <span>Download</span>
-                      </button>
                     </div>
                   ))}
                 </div>

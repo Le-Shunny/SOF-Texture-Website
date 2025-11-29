@@ -15,13 +15,14 @@ export default function RulesModal({ isOpen, onClose, type }: RulesModalProps) {
     "Ensure proper alignment and avoid errors such as fill lines in your textures.",
     "Stealing other people's textures and claiming them as your own will result in account suspension or permanent ban.",
     "Offensive descriptions or comments are not permitted.",
-    "All uploads must comply with Cloudflare's Terms of Service and content policies."
+    "Update your textures during major game updates to ensure compatibility. Otherwise, use the OUTDATED tag"
   ];
 
   const packRules = [
     "Offensive titles or descriptions are strictly prohibited.",
     "NSFW or any offensive thumbnails are not allowed.",
-    "All pack content must comply with Cloudflare's Terms of Service and content policies."
+    "Make sure all textures in the pack comply with the texture uploading rules.",
+    "Make sure all textures in the pack are compatible with the latest game version. Otherwise, please point out the outdated texture and its game version, or simply delete it from the pack."
   ];
 
   const rules = type === 'texture' ? textureRules : packRules;
