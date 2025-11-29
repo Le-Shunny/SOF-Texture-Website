@@ -267,9 +267,32 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
 
 
   const downloadPack = async () => {
+    if (!downloadPackTurnstileToken) {
+      alert('Please complete the captcha to download');
+      return;
+    }
+
     setDownloadingPack(true);
     try {
       const zip = new JSZip();
+
+      // Add each texture to the zip
+      for (const texture of textures) {
+        try {
+          const response = await fetch(texture.texture_url);
+          const blob = await response.blob();
+          zip.file(`${texture.title}.png`, blob);
+
+          // Increment download count for each texture
+          await supabase
+            .from('textures')
+            .update({ download_count: texture.download_count + 1 })
+            .eq('id', texture.id);
+        } catch (error) {
+          console.error(`Error adding texture ${texture.title} to zip:`, error);
+        }
+      }
+
       const content = await zip.generateAsync({ type: 'blob' });
       const url = window.URL.createObjectURL(content);
       const a = document.createElement('a');
@@ -413,10 +436,19 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
                     </button>
                   </div>
 
+                  <div className="flex justify-center mb-4">
+                    <Turnstile
+                      sitekey={CLOUDFLARE_SITE_KEY}
+                      onVerify={(token: string) => setDownloadPackTurnstileToken(token)}
+                      onError={() => alert('Captcha verification failed')}
+                      onExpire={() => setDownloadPackTurnstileToken('')}
+                    />
+                  </div>
+
                   <button
                     onClick={downloadPack}
-                    disabled={downloadingPack}
-                    className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition"
+                    disabled={downloadingPack || !downloadPackTurnstileToken}
+                    className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Archive className="w-5 h-5" />
                     {downloadingPack ? 'Downloading...' : 'Download Pack'}
