@@ -33,6 +33,7 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportCategory, setReportCategory] = useState<'inappropriate_content' | 'theft' | 'other'>('inappropriate_content');
   const [reportReason, setReportReason] = useState('');
+  const [agreeToCloudflare, setAgreeToCloudflare] = useState(false);
 
   useEffect(() => {
     fetchComments();

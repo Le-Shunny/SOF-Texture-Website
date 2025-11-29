@@ -29,6 +29,7 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
   const [reportCategory, setReportCategory] = useState<'inappropriate_content' | 'theft' | 'other'>('inappropriate_content');
   const [reportReason, setReportReason] = useState('');
   const [selectedTexture, setSelectedTexture] = useState<Texture | null>(null);
+  const [agreeToCloudflare, setAgreeToCloudflare] = useState(false);
 
   useEffect(() => {
     fetchPackData();

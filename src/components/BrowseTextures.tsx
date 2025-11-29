@@ -22,6 +22,12 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
   const [packs, setPacks] = useState<Pack[]>([]);
   const [contentType, setContentType] = useState<'textures' | 'packs'>('textures');
   const [loading, setLoading] = useState(true);
+  const [currentPageTextures, setCurrentPageTextures] = useState(0);
+  const [currentPagePacks, setCurrentPagePacks] = useState(0);
+  const [hasMoreTextures, setHasMoreTextures] = useState(true);
+  const [hasMorePacks, setHasMorePacks] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const pageSize = 10;
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAircraft, setFilterAircraft] = useState<string[]>([]);
   const [filterCategory, setFilterCategory] = useState<string[]>([]);
@@ -31,40 +37,82 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
   const [sortCategory, setSortCategory] = useState<SortCategory>('upload_date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
-  useEffect(() => {
-    if (contentType === 'textures') {
-      fetchTextures();
+  const fetchTextures = async (page: number = 0, append: boolean = false) => {
+    if (append) {
+      setLoadingMore(true);
     } else {
-      fetchPacks();
+      setLoading(true);
     }
-  }, [contentType]);
-
-  const fetchTextures = async () => {
-    setLoading(true);
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
     const { data, error } = await supabase
       .from('textures')
       .select('*')
       .eq('status', 'approved')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(from, to);
 
     if (!error && data) {
-      setTextures(data);
+      if (append) {
+        setTextures(prev => [...prev, ...data]);
+        setHasMoreTextures(data.length === pageSize);
+      } else {
+        setTextures(data);
+        setHasMoreTextures(data.length === pageSize);
+      }
     }
-    setLoading(false);
+    if (append) {
+      setLoadingMore(false);
+    } else {
+      setLoading(false);
+    }
   };
 
-  const fetchPacks = async () => {
-    setLoading(true);
+  const fetchPacks = async (page: number = 0, append: boolean = false) => {
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
     const { data, error } = await supabase
       .from('packs')
       .select('*')
       .eq('status', 'approved')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(from, to);
 
     if (!error && data) {
-      setPacks(data);
+      if (append) {
+        setPacks(prev => [...prev, ...data]);
+        setHasMorePacks(data.length === pageSize);
+      } else {
+        setPacks(data);
+        setHasMorePacks(data.length === pageSize);
+      }
     }
-    setLoading(false);
+    if (append) {
+      setLoadingMore(false);
+    } else {
+      setLoading(false);
+    }
+  };
+
+  const loadMore = () => {
+    if (contentType === 'textures') {
+      if (hasMoreTextures && !loadingMore) {
+        const nextPage = currentPageTextures + 1;
+        setCurrentPageTextures(nextPage);
+        fetchTextures(nextPage, true);
+      }
+    } else {
+      if (hasMorePacks && !loadingMore) {
+        const nextPage = currentPagePacks + 1;
+        setCurrentPagePacks(nextPage);
+        fetchPacks(nextPage, true);
+      }
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -503,6 +551,11 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4">
+          {loadingMore && (
+            <div className="text-center py-4">
+              <div className="text-gray-500">Loading more...</div>
+            </div>
+          )}
           {contentType === 'textures' && sortedTextures.map((texture) => (
             <div
               key={texture.id}

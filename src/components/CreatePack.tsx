@@ -100,6 +100,7 @@ export default function CreatePack() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [agreeToRules, setAgreeToRules] = useState(false);
+  const [agreeToCloudflare, setAgreeToCloudflare] = useState(false);
   const [showRulesModal, setShowRulesModal] = useState(false);
 
   useEffect(() => {
@@ -236,6 +237,7 @@ https://www.youtube.com/watch?v=example (youtu.be links work too!)`
       setTitle('');
       setDescription('');
       setAgreeToRules(false);
+      setAgreeToCloudflare(false);
       clearThumbnailFile();
       setSelectedTextures([]);
     } catch (err) {

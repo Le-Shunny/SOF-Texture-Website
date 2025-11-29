@@ -147,6 +147,7 @@ export default function UploadTexture() {
   const [texturePreview, setTexturePreview] = useState<string | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [agreeToRules, setAgreeToRules] = useState(false);
+  const [agreeToCloudflare, setAgreeToCloudflare] = useState(false);
   const [showRulesModal, setShowRulesModal] = useState(false);
   const placeholdertext: string = `Tell us about your texture, you can put #tags here too!
 Embed examples: 
@@ -303,6 +304,7 @@ https://www.youtube.com/watch?v=example (youtu.be links work too!)`;
         textureType: '',
       });
       setAgreeToRules(false);
+      setAgreeToCloudflare(false);
       clearTextureFile();
       clearThumbnailFile();
     } catch (err) {
@@ -461,9 +463,31 @@ https://www.youtube.com/watch?v=example (youtu.be links work too!)`;
           </label>
         </div>
 
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="agreeToCloudflare"
+            checked={agreeToCloudflare}
+            onChange={(e) => setAgreeToCloudflare(e.target.checked)}
+            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+            required
+          />
+          <label htmlFor="agreeToCloudflare" className="text-sm text-gray-700">
+            I agree to Cloudflare's{' '}
+            <a
+              href="https://www.cloudflare.com/terms/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 underline focus:outline-none"
+            >
+              Terms of Service
+            </a>
+          </label>
+        </div>
+
         <button
           type="submit"
-          disabled={loading || !agreeToRules}
+          disabled={loading || !agreeToRules || !agreeToCloudflare}
           className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Uploading...' : 'Upload Texture'}
