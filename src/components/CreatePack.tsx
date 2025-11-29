@@ -4,6 +4,9 @@ import { supabase, Texture } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Upload, Package, X } from 'lucide-react';
 import RulesModal from './RulesModal';
+import Turnstile from 'react-turnstile';
+
+const CLOUDFLARE_SITE_KEY = import.meta.env.VITE_CLOUDFLARE_SITE_KEY;
 
 interface DropzoneProps {
   onDrop: (acceptedFiles: File[]) => void;
@@ -100,8 +103,8 @@ export default function CreatePack() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [agreeToRules, setAgreeToRules] = useState(false);
-  const [agreeToCloudflare, setAgreeToCloudflare] = useState(false);
   const [showRulesModal, setShowRulesModal] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string>('');
 
   useEffect(() => {
     if (user) {
@@ -197,6 +200,12 @@ https://www.youtube.com/watch?v=example (youtu.be links work too!)`
     setSuccess(false);
     setLoading(true);
 
+    if (!turnstileToken) {
+      setError('Please complete the captcha');
+      setLoading(false);
+      return;
+    }
+
     try {
       if (!thumbnailFile) {
         throw new Error('Please upload a thumbnail file');
@@ -237,7 +246,6 @@ https://www.youtube.com/watch?v=example (youtu.be links work too!)`
       setTitle('');
       setDescription('');
       setAgreeToRules(false);
-      setAgreeToCloudflare(false);
       clearThumbnailFile();
       setSelectedTextures([]);
     } catch (err) {
@@ -355,9 +363,18 @@ https://www.youtube.com/watch?v=example (youtu.be links work too!)`
             </label>
           </div>
 
+          <div className="flex justify-center mb-4">
+            <Turnstile
+              sitekey={CLOUDFLARE_SITE_KEY}
+              onVerify={(token: string) => setTurnstileToken(token)}
+              onError={() => setError('Captcha verification failed')}
+              onExpire={() => setTurnstileToken('')}
+            />
+          </div>
+
           <button
             type="submit"
-            disabled={loading || selectedTextures.length === 0 || !title || !thumbnailFile || !agreeToRules}
+            disabled={loading || selectedTextures.length === 0 || !title || !thumbnailFile || !agreeToRules || !turnstileToken}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {loading ? 'Creating Pack...' : 'Create Pack'}
