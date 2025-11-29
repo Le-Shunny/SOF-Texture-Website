@@ -253,18 +253,9 @@ export default function AdminPanel({ onViewTexture, onViewPack }: AdminPanelProp
                         </button>
 
                         <button
-                          onClick={() => handleReject(texture.id)}
-                          className="flex items-center justify-center gap-2 px-2 py-1 sm:px-4 sm:py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition"
-                          title="Reject"
-                        >
-                          <X className="w-4 h-4" />
-                          <span className="sm:hidden">Reject</span>
-                        </button>
-
-                        <button
                           onClick={() => handleDelete(texture.id)}
                           className="flex items-center justify-center gap-2 px-2 py-1 sm:px-4 sm:py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
-                          title="Delete"
+                          title="Reject"
                         >
                           <Trash2 className="w-4 h-4" />
                           <span className="sm:hidden">Delete</span>
