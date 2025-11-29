@@ -301,6 +301,33 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     setFilterType([]);
   };
 
+  useEffect(() => {
+    // Reset pages when contentType changes
+    setCurrentPageTextures(0);
+    setCurrentPagePacks(0);
+    setTextures([]);
+    setPacks([]);
+    setHasMoreTextures(true);
+    setHasMorePacks(true);
+
+    if (contentType === 'textures') {
+      fetchTextures(0, false);
+    } else {
+      fetchPacks(0, false);
+    }
+  }, [contentType]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+        loadMore();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [contentType, hasMoreTextures, hasMorePacks, loadingMore, currentPageTextures, currentPagePacks]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
