@@ -49,7 +49,6 @@ export default function RulesModal({ isOpen, onClose, type }: RulesModalProps) {
             ))}
           </ol>
         </div>
-        </div>
       </div>
     </div>
   );
