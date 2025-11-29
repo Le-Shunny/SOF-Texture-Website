@@ -413,44 +413,23 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
                     </button>
                   </div>
 
-                  <div className="flex justify-center mb-4">
-                    <Turnstile
-                      sitekey={CLOUDFLARE_SITE_KEY}
-                      onVerify={(token: string) => setDownloadPackTurnstileToken(token)}
-                      onError={() => alert('Captcha verification failed')}
-                      onExpire={() => setDownloadPackTurnstileToken('')}
-                    />
-                  </div>
-
                   <button
                     onClick={downloadPack}
-                    disabled={downloadingPack || !downloadPackTurnstileToken}
-                    className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={downloadingPack}
+                    className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition"
                   >
                     <Archive className="w-5 h-5" />
                     {downloadingPack ? 'Downloading...' : 'Download Pack'}
                   </button>
 
                   {user && (
-                    <>
-                      <div className="flex justify-center mb-4">
-                        <Turnstile
-                          sitekey={CLOUDFLARE_SITE_KEY}
-                          onVerify={(token: string) => setReportPackTurnstileToken(token)}
-                          onError={() => alert('Captcha verification failed')}
-                          onExpire={() => setReportPackTurnstileToken('')}
-                        />
-                      </div>
-
-                      <button
-                        onClick={() => setShowReportModal(true)}
-                        disabled={!reportPackTurnstileToken}
-                        className="flex items-center justify-center gap-2 w-full bg-orange-600 text-white py-3 px-4 rounded-md hover:bg-orange-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <Flag className="w-5 h-5" />
-                        Report Pack
-                      </button>
-                    </>
+                    <button
+                      onClick={() => setShowReportModal(true)}
+                      className="flex items-center justify-center gap-2 w-full bg-orange-600 text-white py-3 px-4 rounded-md hover:bg-orange-700 transition"
+                    >
+                      <Flag className="w-5 h-5" />
+                      Report Pack
+                    </button>
                   )}
 
                   {user && user.id === localPack.user_id && (
@@ -600,6 +579,15 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                   rows={4}
                   required
+                />
+              </div>
+
+              <div className="flex justify-center mb-4">
+                <Turnstile
+                  sitekey={CLOUDFLARE_SITE_KEY}
+                  onVerify={(token: string) => setReportPackTurnstileToken(token)}
+                  onError={() => alert('Captcha verification failed')}
+                  onExpire={() => setReportPackTurnstileToken('')}
                 />
               </div>
 

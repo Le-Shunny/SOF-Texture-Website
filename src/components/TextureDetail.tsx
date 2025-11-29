@@ -433,25 +433,13 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
                 </button>
 
                 {user && (
-                  <>
-                    <div className="flex justify-center mb-4">
-                      <Turnstile
-                        sitekey={CLOUDFLARE_SITE_KEY}
-                        onVerify={(token: string) => setReportTurnstileToken(token)}
-                        onError={() => alert('Captcha verification failed')}
-                        onExpire={() => setReportTurnstileToken('')}
-                      />
-                    </div>
-
-                    <button
-                      onClick={() => setShowReportModal(true)}
-                      disabled={!reportTurnstileToken}
-                      className="flex items-center justify-center gap-2 w-full bg-orange-600 text-white py-3 px-4 rounded-md hover:bg-orange-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Flag className="w-5 h-5" />
-                      Report Texture
-                    </button>
-                  </>
+                  <button
+                    onClick={() => setShowReportModal(true)}
+                    className="flex items-center justify-center gap-2 w-full bg-orange-600 text-white py-3 px-4 rounded-md hover:bg-orange-700 transition"
+                  >
+                    <Flag className="w-5 h-5" />
+                    Report Texture
+                  </button>
                 )}
 
                 {user && texture.user_id === user.id && onEdit && (
@@ -587,6 +575,15 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                   rows={4}
                   required
+                />
+              </div>
+
+              <div className="flex justify-center mb-4">
+                <Turnstile
+                  sitekey={CLOUDFLARE_SITE_KEY}
+                  onVerify={(token: string) => setReportTurnstileToken(token)}
+                  onError={() => alert('Captcha verification failed')}
+                  onExpire={() => setReportTurnstileToken('')}
                 />
               </div>
 
