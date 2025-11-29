@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Menu, X, Upload, Search, User, LogOut, Shield, Settings, Package } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import Login from './Login';
 import Register from './Register';
 import UserProfile from './UserProfile';
@@ -18,6 +19,33 @@ export default function Navbar({ onNavigate, currentPage, onViewProfile }: Navba
   const [showRegister, setShowRegister] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [adminNotificationCount, setAdminNotificationCount] = useState(0);
+
+  const fetchAdminNotificationCount = async () => {
+    if (!isAdmin) return;
+
+    try {
+      const [pendingTexturesRes, pendingPacksRes, reportsRes, packReportsRes] = await Promise.all([
+        supabase.from('textures').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('packs').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('reports').select('*', { count: 'exact', head: true }),
+        supabase.from('pack_reports').select('*', { count: 'exact', head: true })
+      ]);
+
+      const pendingTexturesCount = pendingTexturesRes.count || 0;
+      const pendingPacksCount = pendingPacksRes.count || 0;
+      const reportsCount = reportsRes.count || 0;
+      const packReportsCount = packReportsRes.count || 0;
+
+      setAdminNotificationCount(pendingTexturesCount + pendingPacksCount + reportsCount + packReportsCount);
+    } catch (error) {
+      console.error('Error fetching admin notification count:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAdminNotificationCount();
+  }, [isAdmin]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -83,7 +111,7 @@ export default function Navbar({ onNavigate, currentPage, onViewProfile }: Navba
               {isAdmin && (
                 <button
                   onClick={() => onNavigate('admin')}
-                  className={`flex items-center px-3 py-2 rounded-md transition ${
+                  className={`relative flex items-center px-3 py-2 rounded-md transition ${
                     currentPage === 'admin'
                       ? 'bg-yellow-100 text-yellow-600'
                       : 'text-white hover:bg-gray-700'
@@ -91,6 +119,11 @@ export default function Navbar({ onNavigate, currentPage, onViewProfile }: Navba
                 >
                   <Shield className="w-5 h-5 mr-2" />
                   Admin
+                  {adminNotificationCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {adminNotificationCount > 99 ? '99+' : adminNotificationCount}
+                    </span>
+                  )}
                 </button>
               )}
 
@@ -202,10 +235,15 @@ export default function Navbar({ onNavigate, currentPage, onViewProfile }: Navba
                     onNavigate('admin');
                     setMobileMenuOpen(false);
                   }}
-                  className="flex items-center w-full px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                  className="relative flex items-center w-full px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
                 >
                   <Shield className="w-5 h-5 mr-2" />
                   Admin
+                  {adminNotificationCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {adminNotificationCount > 99 ? '99+' : adminNotificationCount}
+                    </span>
+                  )}
                 </button>
               )}
 

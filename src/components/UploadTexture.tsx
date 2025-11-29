@@ -3,6 +3,7 @@ import { useDropzone, Accept } from 'react-dropzone';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Upload, X } from 'lucide-react';
+import RulesModal from './RulesModal';
 
 const AIRCRAFT_OPTIONS = [
   'Defiant',
@@ -145,6 +146,8 @@ export default function UploadTexture() {
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [texturePreview, setTexturePreview] = useState<string | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const [agreeToRules, setAgreeToRules] = useState(false);
+  const [showRulesModal, setShowRulesModal] = useState(false);
   const placeholdertext: string = `Tell us about your texture, you can put #tags here too!
 Embed examples: 
 https://i.imgur.com/example.png 
@@ -299,6 +302,7 @@ https://www.youtube.com/watch?v=example (youtu.be links work too!)`;
         category: '',
         textureType: '',
       });
+      setAgreeToRules(false);
       clearTextureFile();
       clearThumbnailFile();
     } catch (err) {
@@ -436,14 +440,41 @@ https://www.youtube.com/watch?v=example (youtu.be links work too!)`;
           </select>
         </div>
 
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="agreeToRules"
+            checked={agreeToRules}
+            onChange={(e) => setAgreeToRules(e.target.checked)}
+            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+            required
+          />
+          <label htmlFor="agreeToRules" className="text-sm text-gray-700">
+            I agree to this site's{' '}
+            <button
+              type="button"
+              onClick={() => setShowRulesModal(true)}
+              className="text-blue-600 hover:text-blue-800 underline focus:outline-none"
+            >
+              texture uploading rules
+            </button>
+          </label>
+        </div>
+
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !agreeToRules}
           className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Uploading...' : 'Upload Texture'}
         </button>
       </form>
+
+      <RulesModal
+        isOpen={showRulesModal}
+        onClose={() => setShowRulesModal(false)}
+        type="texture"
+      />
     </div>
   );
 }

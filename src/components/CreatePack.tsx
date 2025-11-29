@@ -3,6 +3,7 @@ import { useDropzone, Accept } from 'react-dropzone';
 import { supabase, Texture } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Upload, Package, X } from 'lucide-react';
+import RulesModal from './RulesModal';
 
 interface DropzoneProps {
   onDrop: (acceptedFiles: File[]) => void;
@@ -98,6 +99,8 @@ export default function CreatePack() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [agreeToRules, setAgreeToRules] = useState(false);
+  const [showRulesModal, setShowRulesModal] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -232,6 +235,7 @@ https://www.youtube.com/watch?v=example (youtu.be links work too!)`
       // Reset form
       setTitle('');
       setDescription('');
+      setAgreeToRules(false);
       clearThumbnailFile();
       setSelectedTextures([]);
     } catch (err) {
@@ -328,14 +332,41 @@ https://www.youtube.com/watch?v=example (youtu.be links work too!)`
             )}
           </div>
 
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="agreeToRules"
+              checked={agreeToRules}
+              onChange={(e) => setAgreeToRules(e.target.checked)}
+              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+              required
+            />
+            <label htmlFor="agreeToRules" className="text-sm text-gray-700">
+              I agree to this site's{' '}
+              <button
+                type="button"
+                onClick={() => setShowRulesModal(true)}
+                className="text-blue-600 hover:text-blue-800 underline focus:outline-none"
+              >
+                pack uploading rules
+              </button>
+            </label>
+          </div>
+
           <button
             type="submit"
-            disabled={loading || selectedTextures.length === 0 || !title || !thumbnailFile}
+            disabled={loading || selectedTextures.length === 0 || !title || !thumbnailFile || !agreeToRules}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {loading ? 'Creating Pack...' : 'Create Pack'}
-          </button>
+        </button>
       </form>
+
+      <RulesModal
+        isOpen={showRulesModal}
+        onClose={() => setShowRulesModal(false)}
+        type="pack"
+      />
     </div>
   );
 }
