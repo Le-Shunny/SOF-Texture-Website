@@ -6,6 +6,7 @@ import JSZip from 'jszip';
 import EditPack from './EditPack';
 import TextureDetail from './TextureDetail';
 import { deleteStorageFile } from '../lib/storageUtils';
+import { processText } from '../lib/utils';
 
 interface PackDetailProps {
   pack: Pack;
@@ -547,7 +548,7 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
                           </button>
                         )}
                       </div>
-                      <p className="text-gray-700">{comment.content}</p>
+                      <p className="text-gray-700" dangerouslySetInnerHTML={{ __html: processText(comment.content) }}></p>
                     </div>
                   ))}
 
