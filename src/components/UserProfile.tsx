@@ -58,16 +58,6 @@ export default function UserProfile({ onClose }: UserProfileProps) {
               Change Password
             </button>
           </div>
-
-          <div className="mt-6 pt-6 border-t border-gray-300">
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition"
-            >
-              Close
-            </button>
-          </div>
         </div>
       </div>
 
