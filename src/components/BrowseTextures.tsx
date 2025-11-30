@@ -36,6 +36,10 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
   const [sortExpanded, setSortExpanded] = useState(true);
   const [sortCategory, setSortCategory] = useState<SortCategory>('upload_date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  // Fetch all approved values for filter options so filters include values not on the current page
+  const [fetchedAircraftOptions, setFetchedAircraftOptions] = useState<string[]>([]);
+  const [fetchedCategoryOptions, setFetchedCategoryOptions] = useState<string[]>([]);
+  const [fetchedTypeOptions, setFetchedTypeOptions] = useState<string[]>([]);
 
   const fetchTextures = async (page: number = 0, append: boolean = false) => {
     if (append) {
@@ -99,6 +103,39 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     }
   };
 
+  const fetchFilterOptions = async () => {
+    try {
+      // Grab only the relevant fields to reduce data size
+      const { data, error } = await supabase
+        .from('textures')
+        .select('aircraft, category, texture_type')
+        .eq('status', 'approved');
+
+      if (error) {
+        console.error('Failed to fetch filter options:', error);
+        return;
+      }
+
+      if (data) {
+        const aircraftSet = new Set<string>();
+        const categorySet = new Set<string>();
+        const typeSet = new Set<string>();
+
+        data.forEach((row: Pick<Texture, 'aircraft' | 'category' | 'texture_type'>) => {
+          if (row?.aircraft) aircraftSet.add(row.aircraft);
+          if (row?.category) categorySet.add(row.category);
+          if (row?.texture_type) typeSet.add(row.texture_type);
+        });
+
+        setFetchedAircraftOptions(Array.from(aircraftSet).sort());
+        setFetchedCategoryOptions(Array.from(categorySet).sort());
+        setFetchedTypeOptions(Array.from(typeSet).sort());
+      }
+    } catch (err) {
+      console.error('Error fetching filter options', err);
+    }
+  };
+
   const loadMore = () => {
     if (contentType === 'textures') {
       if (hasMoreTextures && !loadingMore) {
@@ -134,6 +171,8 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
       
       // Remove from local state
       setTextures(textures.filter((t) => t.id !== id));
+      // Refresh filter options (in case the deleted texture changed available filters)
+      fetchFilterOptions();
       
       alert('Texture and associated files deleted successfully!');
     } catch (error) {
@@ -168,6 +207,8 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
 
       // Remove from local state
       setPacks(packs.filter((p) => p.id !== id));
+      // Refresh filter options too (for packs there are no texture filters, but keep symmetry)
+      fetchFilterOptions();
 
       alert('Pack and thumbnail deleted successfully!');
     } catch (error) {
@@ -286,6 +327,10 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
   const aircraftOptions = Array.from(new Set(textures.map((t) => t.aircraft))).sort();
   const categoryOptions = Array.from(new Set(textures.map((t) => t.category))).sort();
   const typeOptions = Array.from(new Set(textures.map((t) => t.texture_type))).sort();
+  // Prefer fetched options (from the server) which include values not present in the currently loaded page
+  const displayAircraftOptions = fetchedAircraftOptions.length > 0 ? fetchedAircraftOptions : aircraftOptions;
+  const displayCategoryOptions = fetchedCategoryOptions.length > 0 ? fetchedCategoryOptions : categoryOptions;
+  const displayTypeOptions = fetchedTypeOptions.length > 0 ? fetchedTypeOptions : typeOptions;
 
   const toggleFilter = (value: string, currentFilters: string[], setFilters: (filters: string[]) => void) => {
     if (currentFilters.includes(value)) {
@@ -312,6 +357,8 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
 
     if (contentType === 'textures') {
       fetchTextures(0, false);
+      // Fetch filter options independently so the checkboxes include values from all approved textures
+      fetchFilterOptions();
     } else {
       fetchPacks(0, false);
     }
@@ -488,7 +535,7 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
                     ) }
                   </div>
                   <div className="max-h-32 overflow-y-auto space-y-1 border border-gray-200 rounded-md p-2">
-                    {aircraftOptions.map((aircraft) => (
+                    {displayAircraftOptions.map((aircraft) => (
                       <label key={aircraft} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
                         <input
                           type="checkbox"
@@ -515,7 +562,7 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
                     ) }
                   </div>
                   <div className="max-h-32 overflow-y-auto space-y-1 border border-gray-200 rounded-md p-2">
-                    {categoryOptions.map((category) => (
+                    {displayCategoryOptions.map((category) => (
                       <label key={category} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
                         <input
                           type="checkbox"
@@ -542,7 +589,7 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
                     ) }
                   </div>
                   <div className="max-h-32 overflow-y-auto space-y-1 border border-gray-200 rounded-md p-2">
-                    {typeOptions.map((type) => (
+                    {displayTypeOptions.map((type) => (
                       <label key={type} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
                         <input
                           type="checkbox"
