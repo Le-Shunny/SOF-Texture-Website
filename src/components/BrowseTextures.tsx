@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase, Texture, Pack } from '../lib/supabase';
+import { getCache, setCache, clearCache } from '../lib/cache';
 import { useAuth } from '../contexts/AuthContext';
 import { processText } from '../lib/utils';
 import { Search, Download, Edit, Trash2, ThumbsUp, ThumbsDown, User, ChevronUp, ChevronDown } from 'lucide-react';
@@ -40,6 +41,12 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
   const [fetchedAircraftOptions, setFetchedAircraftOptions] = useState<string[]>([]);
   const [fetchedCategoryOptions, setFetchedCategoryOptions] = useState<string[]>([]);
   const [fetchedTypeOptions, setFetchedTypeOptions] = useState<string[]>([]);
+  const [allTextures, setAllTextures] = useState<Texture[] | null>(null);
+  const [filterLoading, setFilterLoading] = useState(false);
+  const [preloadLoading, setPreloadLoading] = useState(false);
+  const [preloadLoaded, setPreloadLoaded] = useState(0);
+  const [preloadTotal, setPreloadTotal] = useState<number | null>(null);
+  const preloadAbortRef = useRef({ aborted: false });
 
   const fetchTextures = async (page: number = 0, append: boolean = false) => {
     if (append) {
@@ -104,7 +111,29 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
   };
 
   const fetchFilterOptions = async () => {
+    setFilterLoading(true);
     try {
+      // Try RPC-based query first (returns JSONB with arrays) - more efficient at scale
+      try {
+        const { data: rpcRes, error: rpcErr } = await supabase.rpc('get_texture_filter_options');
+        if (!rpcErr && rpcRes) {
+          const payload = Array.isArray(rpcRes) ? rpcRes[0] : rpcRes;
+          const aircrafts: string[] = payload?.aircrafts ?? [];
+          const categories: string[] = payload?.categories ?? [];
+          const texture_types: string[] = payload?.texture_types ?? [];
+
+          setFetchedAircraftOptions(aircrafts);
+          setFetchedCategoryOptions(categories);
+          setFetchedTypeOptions(texture_types);
+          setFilterLoading(false);
+          return;
+        }
+      } catch (rpcErr) {
+        // RPC not available, will fall back
+        console.warn('get_texture_filter_options RPC failed, falling back to full scan', rpcErr);
+      }
+
+      // Fallback: fetch fields and compute distinct client-side
       // Grab only the relevant fields to reduce data size
       const { data, error } = await supabase
         .from('textures')
@@ -113,6 +142,7 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
 
       if (error) {
         console.error('Failed to fetch filter options:', error);
+        setFilterLoading(false);
         return;
       }
 
@@ -133,6 +163,99 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
       }
     } catch (err) {
       console.error('Error fetching filter options', err);
+    } finally {
+      setFilterLoading(false);
+    }
+  };
+
+  // Preload all approved textures (in background) so filtering/searching is fast
+  const fetchAllTextures = async () => {
+    try {
+      // Reset abort flag
+      preloadAbortRef.current.aborted = false;
+      // Check cache first
+      const cache = await getCache<Texture[]>('all_textures');
+      if (cache && cache.value && cache.value.length > 0) {
+        setAllTextures(cache.value);
+        setPreloadLoaded(cache.value.length);
+        setPreloadTotal(cache.value.length);
+        // If cache is fresh (less than a day), skip reloading
+        const age = Date.now() - cache.timestamp;
+        const ONE_DAY = 24 * 60 * 60 * 1000;
+        if (age < ONE_DAY) {
+          return; // use cached data, don't re-fetch
+        }
+        // otherwise, continue to refresh in background while showing cached
+      }
+      if (allTextures && allTextures.length > 0) return; // already loaded
+      setPreloadLoading(true);
+      setPreloadLoaded(0);
+      setPreloadTotal(null);
+      // Get total count first for progress
+      const countRes = await supabase.from('textures').select('id', { count: 'exact', head: true }).eq('status', 'approved');
+      const total = countRes.count ?? null;
+      if (total !== null) setPreloadTotal(total);
+
+      const batchSize = 500; // chunk size
+      let offset = 0;
+      let combined: Texture[] = [];
+      while (true) {
+        if (preloadAbortRef.current.aborted) break;
+        const from = offset;
+        const to = offset + batchSize - 1;
+        const { data, error } = await supabase
+          .from('textures')
+          .select('*')
+          .eq('status', 'approved')
+          .order('created_at', { ascending: false })
+          .range(from, to);
+
+        if (error) {
+          console.error('Failed to fetch texture batch:', error);
+          break;
+        }
+        if (!data || data.length === 0) break;
+
+        combined = [...combined, ...data];
+        setAllTextures(prev => prev ? [...prev, ...data] : [...data]);
+        setPreloadLoaded(prev => prev + data.length);
+        offset += data.length;
+        if (data.length < batchSize) break;
+      }
+      setHasMoreTextures(combined.length > pageSize);
+      // Save to cache if we completed without abort
+      if (!preloadAbortRef.current.aborted) {
+        try {
+          await setCache('all_textures', combined);
+        } catch (err) {
+          console.warn('Failed to cache all_textures', err);
+        }
+      }
+    } catch (err) {
+      console.error('Error preloading textures', err);
+    } finally {
+      setPreloadLoading(false);
+    }
+  };
+
+  const cancelPreload = () => {
+    preloadAbortRef.current.aborted = true;
+    setPreloadLoading(false);
+  };
+
+  const handleClearCache = async () => {
+    try {
+      await clearCache('all_textures');
+      setAllTextures(null);
+      setPreloadLoaded(0);
+      setPreloadTotal(null);
+      // Reset visible list and reload first page
+      setTextures([]);
+      fetchTextures(0, false);
+      fetchFilterOptions();
+      // Optionally re-run preload
+    } catch (err) {
+      console.warn('Failed to clear cache', err);
     }
   };
 
@@ -141,7 +264,10 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
       if (hasMoreTextures && !loadingMore) {
         const nextPage = currentPageTextures + 1;
         setCurrentPageTextures(nextPage);
-        fetchTextures(nextPage, true);
+        // If we preloaded all textures, we don't need to fetch more pages from the server
+        if (!allTextures) {
+          fetchTextures(nextPage, true);
+        }
       }
     } else {
       if (hasMorePacks && !loadingMore) {
@@ -171,6 +297,8 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
       
       // Remove from local state
       setTextures(textures.filter((t) => t.id !== id));
+      // Remove from preloaded set if present
+      setAllTextures(prev => prev ? prev.filter((t) => t.id !== id) : prev);
       // Refresh filter options (in case the deleted texture changed available filters)
       fetchFilterOptions();
       
@@ -237,7 +365,9 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     return score;
   };
 
-  const filteredTextures = textures.filter((texture) => {
+  const baseTextures = allTextures ?? textures;
+
+  const filteredTextures = baseTextures.filter((texture) => {
     if (isUUIDSearch(searchTerm)) {
       return texture.id.toLowerCase() === searchTerm.trim().toLowerCase();
     }
@@ -324,9 +454,12 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     return score;
   };
 
-  const aircraftOptions = Array.from(new Set(textures.map((t) => t.aircraft))).sort();
-  const categoryOptions = Array.from(new Set(textures.map((t) => t.category))).sort();
-  const typeOptions = Array.from(new Set(textures.map((t) => t.texture_type))).sort();
+    // Visible textures for UI (limit items by page)
+    const visibleTextures = sortedTextures.slice(0, (currentPageTextures + 1) * pageSize);
+
+  const aircraftOptions = Array.from(new Set(baseTextures.map((t) => t.aircraft))).sort();
+  const categoryOptions = Array.from(new Set(baseTextures.map((t) => t.category))).sort();
+  const typeOptions = Array.from(new Set(baseTextures.map((t) => t.texture_type))).sort();
   // Prefer fetched options (from the server) which include values not present in the currently loaded page
   const displayAircraftOptions = fetchedAircraftOptions.length > 0 ? fetchedAircraftOptions : aircraftOptions;
   const displayCategoryOptions = fetchedCategoryOptions.length > 0 ? fetchedCategoryOptions : categoryOptions;
@@ -346,6 +479,11 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     setFilterType([]);
   };
 
+  // Reset to first page when filters/search/sort change, so user sees relevant items immediately
+  useEffect(() => {
+    setCurrentPageTextures(0);
+  }, [searchTerm, filterAircraft, filterCategory, filterType, sortCategory, sortDirection]);
+
   useEffect(() => {
     // Reset pages when contentType changes
     setCurrentPageTextures(0);
@@ -356,13 +494,34 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     setHasMorePacks(true);
 
     if (contentType === 'textures') {
-      fetchTextures(0, false);
+      // If we already have a preloaded cache, use it for initial list instead of fetching the first page
+      if (allTextures && allTextures.length > 0) {
+        setTextures(allTextures.slice(0, pageSize));
+        setHasMoreTextures(allTextures.length > pageSize);
+      } else {
+        fetchTextures(0, false);
+      }
       // Fetch filter options independently so the checkboxes include values from all approved textures
       fetchFilterOptions();
+      // Start preloading everything in the background so filtering/search becomes instant
+      fetchAllTextures();
     } else {
       fetchPacks(0, false);
     }
   }, [contentType]);
+
+  // On mount, preload filters and all textures so the first visit is fast
+  useEffect(() => {
+    // Run both in the background; do not block rendering
+    fetchFilterOptions();
+    fetchAllTextures();
+  }, []);
+
+  // Update hasMoreTextures when the base dataset or page changes
+  useEffect(() => {
+    const total = filteredTextures.length;
+    setHasMoreTextures(total > (currentPageTextures + 1) * pageSize);
+  }, [filteredTextures, currentPageTextures]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -422,6 +581,23 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+                {preloadLoading && (
+                  <div className="text-sm text-gray-500 ml-3 flex items-center gap-2">
+                    <span>Preloading {preloadLoaded}{preloadTotal ? `/${preloadTotal}` : ''}</span>
+                    <button
+                      onClick={cancelPreload}
+                      className="text-xs text-gray-700 bg-gray-200 px-2 py-1 rounded hover:bg-gray-300"
+                    >
+                      Stop
+                    </button>
+                    <button
+                      onClick={handleClearCache}
+                      className="text-xs text-gray-700 bg-gray-200 px-2 py-1 rounded hover:bg-gray-300"
+                    >
+                      Clear Cache
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                 <button
@@ -506,6 +682,7 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
                   className="ml-4 flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
                 >
                   <span>Filters</span>
+                  {filterLoading && <span className="text-xs text-gray-500">Loading...</span>}
                   <svg
                     className={`w-4 h-4 transition-transform ${filtersExpanded ? 'rotate-180' : ''}`}
                     fill="none"
@@ -519,8 +696,25 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
             </div>
           </div>
 
+          {/* Preload progress bar */}
+          {preloadLoading && (
+            <div className="h-1 bg-gray-200 rounded-b overflow-hidden">
+              {preloadTotal ? (
+                <div
+                  className="h-full bg-blue-600 transition-all"
+                  style={{ width: `${Math.min(100, Math.round((preloadLoaded / (preloadTotal || 1)) * 100))}%` }}
+                />
+              ) : (
+                <div className="h-full bg-blue-600 animate-pulse" style={{ width: '40%' }} />
+              )}
+            </div>
+          )}
+
           {filtersExpanded && contentType === 'textures' && (
             <div className="p-4 space-y-4">
+              {filterLoading && (
+                <div className="text-sm text-gray-500">Loading filter options...</div>
+              )}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -630,7 +824,7 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
               <div className="text-gray-500">Loading more...</div>
             </div>
           )}
-          {contentType === 'textures' && sortedTextures.map((texture) => (
+          {contentType === 'textures' && visibleTextures.map((texture) => (
             <div
               key={texture.id}
               className="bg-[#cbd5e1] rounded-lg shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer"

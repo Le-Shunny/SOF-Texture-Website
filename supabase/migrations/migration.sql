@@ -278,6 +278,16 @@ CREATE TRIGGER update_texture_comments_updated_at BEFORE UPDATE ON texture_comme
 CREATE TRIGGER update_pack_comments_updated_at BEFORE UPDATE ON pack_comments
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+-- RPC to fetch distinct filter options for textures
+CREATE OR REPLACE FUNCTION public.get_texture_filter_options()
+RETURNS JSONB LANGUAGE SQL STABLE AS $$
+  SELECT jsonb_build_object(
+    'aircrafts', (SELECT jsonb_agg(DISTINCT aircraft ORDER BY aircraft) FROM textures WHERE status='approved' AND aircraft IS NOT NULL),
+    'categories', (SELECT jsonb_agg(DISTINCT category ORDER BY category) FROM textures WHERE status='approved' AND category IS NOT NULL),
+    'texture_types', (SELECT jsonb_agg(DISTINCT texture_type ORDER BY texture_type) FROM textures WHERE status='approved' AND texture_type IS NOT NULL)
+  );
+$$;
+
 -- Migration to add automatic file deletion when textures are deleted
 -- This serves as a backup mechanism to ensure files are cleaned up
 
