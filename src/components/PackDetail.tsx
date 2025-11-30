@@ -279,7 +279,7 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
       for (const texture of textures) {
         const response = await fetch(texture.texture_url);
         const blob = await response.blob();
-        zip.file(`${texture.title}.png`, blob);
+        zip.file(`${texture.title.replace(/\//g, '-')}.png`, blob);
       }
 
       const content = await zip.generateAsync({ type: 'blob' });
