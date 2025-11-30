@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useDropzone, Accept } from 'react-dropzone';
 import { supabase, Texture } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Upload, Package, X } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
 import RulesModal from './RulesModal';
 import Turnstile from 'react-turnstile';
 
@@ -94,6 +94,7 @@ function Dropzone({
 export default function CreatePack() {
   const { user, profile, isTrusted } = useAuth();
   const [title, setTitle] = useState('');
+  const [titleError, setTitleError] = useState('');
   const [description, setDescription] = useState('');
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
@@ -135,6 +136,8 @@ export default function CreatePack() {
 Embed examples: 
 https://i.imgur.com/example.png 
 https://www.youtube.com/watch?v=example (youtu.be links work too!)`
+  const INVALID_TITLE_REGEX = /[<>:?\\\/\*|\"]/;
+
   const onThumbnailDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
@@ -202,6 +205,12 @@ https://www.youtube.com/watch?v=example (youtu.be links work too!)`
 
     if (!turnstileToken) {
       setError('Please complete the captcha');
+      setLoading(false);
+      return;
+    }
+
+    if (INVALID_TITLE_REGEX.test(title)) {
+      setError('Title contains invalid characters');
       setLoading(false);
       return;
     }
@@ -290,10 +299,19 @@ https://www.youtube.com/watch?v=example (youtu.be links work too!)`
             <input
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                const newTitle = e.target.value;
+                if (INVALID_TITLE_REGEX.test(newTitle)) {
+                  setTitleError('Title cannot contain any of the following characters: < > : ? \\ / * | "');
+                } else {
+                  setTitleError('');
+                }
+                setTitle(newTitle);
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
+            {titleError && <p className="text-sm text-red-600 mt-1">{titleError}</p>}
           </div>
 
           <div>
@@ -374,7 +392,7 @@ https://www.youtube.com/watch?v=example (youtu.be links work too!)`
 
           <button
             type="submit"
-            disabled={loading || selectedTextures.length === 0 || !title || !thumbnailFile || !agreeToRules || !turnstileToken}
+            disabled={loading || selectedTextures.length === 0 || !title || !!titleError || !thumbnailFile || !agreeToRules || !turnstileToken}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {loading ? 'Creating Pack...' : 'Create Pack'}

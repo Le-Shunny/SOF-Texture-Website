@@ -444,12 +444,12 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
                     Download Count
                   </button>
                   <button
-                    onClick={() => setSortDirection(sortDirection === 'desc' ? 'asc' : 'desc')}
-                    className="flex items-center gap-1 px-2 py-1 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
-                  >
-                    {sortDirection === 'desc' ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-                    {sortDirection === 'desc' ? 'High to Low' : 'Low to High'}
-                  </button>
+                      onClick={() => setSortDirection(sortDirection === 'desc' ? 'asc' : 'desc')}
+                      className="flex items-center gap-1 px-2 py-1 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
+                    >
+                      {sortDirection === 'desc' ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                      { (sortCategory === 'upload_date' || sortCategory === 'update_date') ? (sortDirection === 'desc' ? 'Newest' : 'Oldest') : (sortDirection === 'desc' ? 'High to Low' : 'Low to High') }
+                    </button>
                 </div>
                 )}
               </div>

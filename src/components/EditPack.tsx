@@ -3,7 +3,7 @@ import { useDropzone, Accept } from 'react-dropzone';
 import { supabase, Texture, Pack } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { deleteStorageFile } from '../lib/storageUtils';
-import { Upload, Package, X } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
 
 interface DropzoneProps {
   onDrop: (acceptedFiles: File[]) => void;
@@ -105,6 +105,8 @@ export default function EditPack({ pack, onUpdate, onClose }: EditPackProps) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [titleError, setTitleError] = useState('');
+  const INVALID_TITLE_REGEX = /[<>:?\\\/\*|\"]/;
 
   useEffect(() => {
     if (user && user.id !== pack.user_id) {
@@ -217,6 +219,12 @@ export default function EditPack({ pack, onUpdate, onClose }: EditPackProps) {
     setSuccess(false);
     setLoading(true);
 
+    if (INVALID_TITLE_REGEX.test(title)) {
+      setError('Title contains invalid characters');
+      setLoading(false);
+      return;
+    }
+
     try {
       if (selectedTextures.length === 0) {
         throw new Error('Please select at least one texture');
@@ -321,10 +329,19 @@ export default function EditPack({ pack, onUpdate, onClose }: EditPackProps) {
               <input
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => {
+                  const newTitle = e.target.value;
+                  if (INVALID_TITLE_REGEX.test(newTitle)) {
+                    setTitleError('Title cannot contain any of the following characters: < > : ? \\ / * | "');
+                  } else {
+                    setTitleError('');
+                  }
+                  setTitle(newTitle);
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
+              {titleError && <p className="text-sm text-red-600 mt-1">{titleError}</p>}
             </div>
 
             <div>
@@ -384,7 +401,7 @@ export default function EditPack({ pack, onUpdate, onClose }: EditPackProps) {
 
             <button
               type="submit"
-              disabled={loading || selectedTextures.length === 0 || !title}
+              disabled={loading || selectedTextures.length === 0 || !title || !!titleError}
               className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               {loading ? 'Updating Pack...' : 'Update Pack'}

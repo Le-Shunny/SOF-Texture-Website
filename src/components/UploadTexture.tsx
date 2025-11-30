@@ -152,6 +152,8 @@ export default function UploadTexture() {
   const [agreeToRules, setAgreeToRules] = useState(false);
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string>('');
+  const [titleError, setTitleError] = useState('');
+  const INVALID_TITLE_REGEX = /[<>:?\\\/\*|\"]/;
   const placeholdertext: string = `Tell us about your texture, you can put #tags here too!
 Embed examples: 
 https://i.imgur.com/example.png 
@@ -275,6 +277,12 @@ https://www.youtube.com/watch?v=example (youtu.be links work too!)`;
       return;
     }
 
+    if (INVALID_TITLE_REGEX.test(formData.title)) {
+      setError('Title contains invalid characters');
+      setLoading(false);
+      return;
+    }
+
     try {
       if (!textureFile || !thumbnailFile) {
         throw new Error('Please upload both texture and thumbnail files');
@@ -368,10 +376,19 @@ https://www.youtube.com/watch?v=example (youtu.be links work too!)`;
             id="title"
             type="text"
             value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            onChange={(e) => {
+              const newTitle = e.target.value;
+              if (INVALID_TITLE_REGEX.test(newTitle)) {
+                setTitleError('Title cannot contain any of the following characters: < > : ? \\ / * | "');
+              } else {
+                setTitleError('');
+              }
+              setFormData({ ...formData, title: newTitle });
+            }}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
+          {titleError && <p className="text-sm text-red-600 mt-1">{titleError}</p>}
         </div>
 
         <div>
@@ -484,7 +501,7 @@ https://www.youtube.com/watch?v=example (youtu.be links work too!)`;
 
         <button
           type="submit"
-          disabled={loading || !agreeToRules || !turnstileToken}
+          disabled={loading || !agreeToRules || !turnstileToken || !formData.title || !!titleError}
           className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Uploading...' : 'Upload Texture'}
