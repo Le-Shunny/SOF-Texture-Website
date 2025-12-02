@@ -302,8 +302,9 @@ export default function EditPack({ pack, onUpdate, onClose }: EditPackProps) {
         <div className="flex justify-between items-center p-4 border-b">
           <h1 className="text-xl font-bold">Edit Pack</h1>
           <button
+            type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition"
+            className="text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-300"
           >
             <X className="w-6 h-6" />
           </button>
