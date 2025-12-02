@@ -174,23 +174,27 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
       // Reset abort flag
       preloadAbortRef.current.aborted = false;
       // Check cache first
+      let cachedTextures: Texture[] = [];
       const cache = await getCache<Texture[]>('all_textures');
       if (cache && cache.value && cache.value.length > 0) {
-        setAllTextures(cache.value);
-        setPreloadLoaded(cache.value.length);
-        setPreloadTotal(cache.value.length);
-        // If cache is fresh (less than a day), skip reloading
+        cachedTextures = cache.value;
+        setAllTextures(cachedTextures);
+        setPreloadLoaded(cachedTextures.length);
+        setPreloadTotal(cachedTextures.length);
+        // If cache is fresh (less than 1 hour), skip reloading
         const age = Date.now() - cache.timestamp;
-        const ONE_DAY = 24 * 60 * 60 * 1000;
-        if (age < ONE_DAY) {
+        const ONE_HOUR = 60 * 60 * 1000;
+        if (age < ONE_HOUR) {
           return; // use cached data, don't re-fetch
         }
         // otherwise, continue to refresh in background while showing cached
       }
       if (allTextures && allTextures.length > 0) return; // already loaded
       setPreloadLoading(true);
-      setPreloadLoaded(0);
-      setPreloadTotal(null);
+      if (cachedTextures.length === 0) {
+        setPreloadLoaded(0);
+        setPreloadTotal(null);
+      }
       // Get total count first for progress
       const countRes = await supabase.from('textures').select('id', { count: 'exact', head: true }).eq('status', 'approved');
       const total = countRes.count ?? null;
@@ -217,16 +221,23 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
         if (!data || data.length === 0) break;
 
         combined = [...combined, ...data];
-        setAllTextures(prev => prev ? [...prev, ...data] : [...data]);
-        setPreloadLoaded(prev => prev + data.length);
         offset += data.length;
         if (data.length < batchSize) break;
       }
-      setHasMoreTextures(combined.length > pageSize);
-      // Save to cache if we completed without abort
+      
+      // Merge with cached textures, prioritizing new data (by deduplicating on ID)
+      const idSet = new Set(combined.map(t => t.id));
+      const mergedTextures = [...combined, ...cachedTextures.filter(t => !idSet.has(t.id))];
+      
+      // Set all textures at once to avoid duplicates
+      setAllTextures(mergedTextures);
+      setPreloadLoaded(mergedTextures.length);
+      setPreloadTotal(mergedTextures.length);
+      setHasMoreTextures(mergedTextures.length > pageSize);
+      // Save merged cache if we completed without abort
       if (!preloadAbortRef.current.aborted) {
         try {
-          await setCache('all_textures', combined);
+          await setCache('all_textures', mergedTextures);
         } catch (err) {
           console.warn('Failed to cache all_textures', err);
         }
@@ -494,13 +505,6 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     setHasMorePacks(true);
 
     if (contentType === 'textures') {
-      // If we already have a preloaded cache, use it for initial list instead of fetching the first page
-      if (allTextures && allTextures.length > 0) {
-        setTextures(allTextures.slice(0, pageSize));
-        setHasMoreTextures(allTextures.length > pageSize);
-      } else {
-        fetchTextures(0, false);
-      }
       // Fetch filter options independently so the checkboxes include values from all approved textures
       fetchFilterOptions();
       // Start preloading everything in the background so filtering/search becomes instant
