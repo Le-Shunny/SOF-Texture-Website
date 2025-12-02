@@ -21,7 +21,7 @@ function App() {
   const [profileUsername, setProfileUsername] = useState<string>('');
 
   useLayoutEffect(() => {
-    if (currentPage !== 'edit') {
+    if (currentPage !== 'edit' && currentPage !== 'browse') {
       setEditingTexture(null);
     }
     setEditingPack(null);
@@ -43,7 +43,6 @@ function App() {
   const handleEditTexture = (texture: Texture) => {
     setSelectedTexture(null);
     setEditingTexture(texture);
-    setCurrentPage('edit');
   };
 
   const handleUpdateTexture = (updatedTexture: Texture) => {
@@ -108,14 +107,18 @@ function App() {
         )}
 
         {editingTexture && currentPage !== 'edit' && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60">
-            <EditTexture texture={editingTexture} onClose={handleCloseEdit} onUpdate={handleUpdateTexture} />
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-60 overflow-y-auto">
+            <div className="min-h-screen px-6 sm:px-4 py-8">
+              <div className="max-w-full lg:max-w-5xl mx-auto bg-[#cbd5e1] rounded-lg shadow-xl">
+                <EditTexture texture={editingTexture} onClose={handleCloseEdit} onUpdate={handleUpdateTexture} />
+              </div>
+            </div>
           </div>
         )}
 
         {editingPack && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-60 overflow-y-auto">
-            <div className="min-h-screen px-6 sm:px-4 py-8">
+            <div className="min-h-screen py-8">
               <div className="max-w-full lg:max-w-5xl mx-auto bg-[#cbd5e1] rounded-lg shadow-xl">
                 <EditPack
                   pack={editingPack}
