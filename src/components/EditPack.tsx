@@ -296,7 +296,7 @@ export default function EditPack({ pack, onUpdate, onClose }: EditPackProps) {
   }
 
   return (
-    <div className="bg-[#cbd5e1] rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+    <div className="bg-[#cbd5e1] rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
       <div className="flex justify-between items-center p-4 border-b">
         <h1 className="text-xl font-bold">Edit Pack</h1>
         <button
@@ -321,6 +321,16 @@ export default function EditPack({ pack, onUpdate, onClose }: EditPackProps) {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            <Dropzone
+              onDrop={onThumbnailDrop}
+              accept={{ 'image/*': [] }}
+              file={thumbnailFile}
+              preview={thumbnailPreview}
+              clearFile={clearThumbnailFile}
+              label="Thumbnail"
+              description="Recommended: 3:2 aspect ratio."
+            />
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Pack Title *
@@ -354,16 +364,6 @@ export default function EditPack({ pack, onUpdate, onClose }: EditPackProps) {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-
-            <Dropzone
-              onDrop={onThumbnailDrop}
-              accept={{ 'image/*': [] }}
-              file={thumbnailFile}
-              preview={thumbnailPreview}
-              clearFile={clearThumbnailFile}
-              label="Thumbnail"
-              description="Recommended: 3:2 aspect ratio."
-            />
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
