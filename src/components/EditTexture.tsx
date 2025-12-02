@@ -5,7 +5,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { Texture } from '../lib/supabase';
 import { deleteTextureFiles } from '../lib/storageUtils';
 import { Upload, X, ArrowLeft } from 'lucide-react';
-import onClose from './EditPack';
 
 const AIRCRAFT_OPTIONS = [
   'Defiant',
@@ -309,7 +308,13 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
           <h1 className="text-xl font-bold">Edit Texture</h1>
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => {
+              if (onClose) {
+                onClose();
+              } else if (onNavigate) {
+                onNavigate('browse');
+              }
+            }}
             className="text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-300"
           >
             <X className="w-6 h-6" />
