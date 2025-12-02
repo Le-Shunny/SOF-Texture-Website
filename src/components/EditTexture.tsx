@@ -89,10 +89,7 @@ const Dropzone: React.FC<DropzoneProps> = ({ onDrop, accept, file, preview, clea
             <img src={preview} alt="Preview" className="max-w-full max-h-48 mx-auto rounded" />
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                clearFile();
-              }}
+              onClick={clearFile}
               className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
             >
               <X className="w-4 h-4" />
@@ -310,8 +307,9 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
         <div className="flex justify-between items-center p-4 border-b">
           <h1 className="text-xl font-bold">Edit Texture</h1>
           <button
+            type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition"
+            className="text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-300"
           >
             <X className="w-6 h-6" />
           </button>

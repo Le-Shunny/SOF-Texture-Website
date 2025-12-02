@@ -285,6 +285,7 @@ export default function EditPack({ pack, onUpdate, onClose }: EditPackProps) {
         <h2 className="text-xl font-bold mb-4">Access Denied</h2>
         <p className="text-gray-600 mb-4">You can only edit your own packs.</p>
         <button
+          type="button"
           onClick={onClose}
           className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
         >
