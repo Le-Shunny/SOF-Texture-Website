@@ -579,7 +579,7 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
       // Initial refresh after 10 seconds
       refreshIntervalRef.current = setInterval(() => {
         refreshTextureCache();
-      }, 10000);
+      }, 5000);
 
       return () => {
         if (refreshIntervalRef.current) {
