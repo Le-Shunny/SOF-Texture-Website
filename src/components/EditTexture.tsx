@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Texture } from '../lib/supabase';
 import { deleteTextureFiles } from '../lib/storageUtils';
 import { Upload, X, ArrowLeft } from 'lucide-react';
+import onClose from './EditPack';
 
 const AIRCRAFT_OPTIONS = [
   'Defiant',
