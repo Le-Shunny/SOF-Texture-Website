@@ -505,10 +505,13 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     setHasMorePacks(true);
 
     if (contentType === 'textures') {
+      setLoading(true);
       // Fetch filter options independently so the checkboxes include values from all approved textures
       fetchFilterOptions();
       // Start preloading everything in the background so filtering/search becomes instant
       fetchAllTextures();
+      // Set loading to false once we have cached data or after a short delay
+      setTimeout(() => setLoading(false), 100);
     } else {
       fetchPacks(0, false);
     }
@@ -517,8 +520,11 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
   // On mount, preload filters and all textures so the first visit is fast
   useEffect(() => {
     // Run both in the background; do not block rendering
+    setLoading(true);
     fetchFilterOptions();
     fetchAllTextures();
+    // Clear loading state after initial setup
+    setTimeout(() => setLoading(false), 100);
   }, []);
 
   // Update hasMoreTextures when the base dataset or page changes

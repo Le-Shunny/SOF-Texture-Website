@@ -173,23 +173,13 @@ function ChangeUsernameModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
             </p>
           </div>
 
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition"
-              disabled={loading || success}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading || success}
-              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Updating...' : 'Update Username'}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading || success}
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Updating...' : 'Update Username'}
+          </button>
         </form>
       </div>
     </div>
@@ -319,23 +309,13 @@ function ChangePasswordModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
             />
           </div>
 
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition"
-              disabled={loading || success}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading || success}
-              className="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Changing...' : 'Change Password'}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading || success}
+            className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Changing...' : 'Change Password'}
+          </button>
         </form>
       </div>
     </div>
