@@ -281,35 +281,32 @@ export default function EditPack({ pack, onUpdate, onClose }: EditPackProps) {
 
   if (user && user.id !== pack.user_id) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-[#cbd5e1] rounded-lg shadow-xl max-w-md w-full p-6">
         <h2 className="text-xl font-bold mb-4">Access Denied</h2>
-          <p className="text-gray-600 mb-4">You can only edit your own packs.</p>
-          <button
-            onClick={onClose}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
-          >
-            Close
-          </button>
-        </div>
+        <p className="text-gray-600 mb-4">You can only edit your own packs.</p>
+        <button
+          onClick={onClose}
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+        >
+          Close
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#cbd5e1] rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
-        <div className="flex justify-between items-center p-4 border-b">
-          <h1 className="text-xl font-bold">Edit Pack</h1>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-300"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-        <div className="overflow-y-auto max-h-[calc(90vh-80px)] p-6">
+    <div className="bg-[#cbd5e1] rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+      <div className="flex justify-between items-center p-4 border-b">
+        <h1 className="text-xl font-bold">Edit Pack</h1>
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-300"
+        >
+          <X className="w-6 h-6" />
+        </button>
+      </div>
+      <div className="overflow-y-auto max-h-[calc(90vh-80px)] p-6">
           {success && (
             <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
               Pack updated successfully!
@@ -410,6 +407,5 @@ export default function EditPack({ pack, onUpdate, onClose }: EditPackProps) {
           </form>
         </div>
       </div>
-    </div>
   );
 }
