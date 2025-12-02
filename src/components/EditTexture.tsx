@@ -302,8 +302,8 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
   };
 
   return (
-    <div className="bg-[#cbd5e1] rounded-lg shadow-xl max-w-2xl w-full mx-auto max-h-[90vh] overflow-hidden">
-        <div className="flex justify-between items-center p-4 border-b">
+    <div className="bg-[#cbd5e1] rounded-lg shadow-xl max-w-lg w-full mx-auto max-h-[90vh] overflow-hidden">
+      <div className="flex justify-between items-center p-4 border-b">
           <h1 className="text-xl font-bold">Edit Texture</h1>
           <button
             type="button"
