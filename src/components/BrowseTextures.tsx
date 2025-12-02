@@ -47,6 +47,7 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
   const [preloadLoaded, setPreloadLoaded] = useState(0);
   const [preloadTotal, setPreloadTotal] = useState<number | null>(null);
   const preloadAbortRef = useRef({ aborted: false });
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchTextures = async (page: number = 0, append: boolean = false) => {
     if (append) {
@@ -252,6 +253,53 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
   const cancelPreload = () => {
     preloadAbortRef.current.aborted = true;
     setPreloadLoading(false);
+  };
+
+  // Refresh textures every 10 seconds to check for new uploads
+  const refreshTextureCache = async () => {
+    try {
+      // Get current cache
+      const cache = await getCache<Texture[]>('all_textures');
+      const cachedTextures = cache && cache.value ? cache.value : [];
+      
+      // Fetch the newest textures (grab more than we might need to ensure we get all new ones)
+      const batchSize = 100;
+      const { data: newTextures, error } = await supabase
+        .from('textures')
+        .select('*')
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false })
+        .limit(batchSize);
+
+      if (error) {
+        console.error('Failed to refresh textures:', error);
+        return;
+      }
+
+      if (!newTextures || newTextures.length === 0) return;
+
+      // Create a Set of cached IDs for quick lookup
+      const cachedIds = new Set(cachedTextures.map(t => t.id));
+      
+      // Find truly new textures (those not in cache)
+      const actuallyNewTextures = newTextures.filter(t => !cachedIds.has(t.id));
+
+      // If there are new textures, merge and update cache
+      if (actuallyNewTextures.length > 0) {
+        const mergedTextures = [...newTextures, ...cachedTextures.filter(t => !new Set(newTextures.map(n => n.id)).has(t.id))];
+        
+        setAllTextures(mergedTextures);
+        
+        // Update cache with new merged list
+        try {
+          await setCache('all_textures', mergedTextures);
+        } catch (err) {
+          console.warn('Failed to update cache during refresh:', err);
+        }
+      }
+    } catch (err) {
+      console.error('Error refreshing texture cache:', err);
+    }
   };
 
   const handleClearCache = async () => {
@@ -526,6 +574,22 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     // Clear loading state after initial setup
     setTimeout(() => setLoading(false), 100);
   }, []);
+
+  // Set up 10-second refresh interval for texture cache
+  useEffect(() => {
+    if (contentType === 'textures') {
+      // Initial refresh after 10 seconds
+      refreshIntervalRef.current = setInterval(() => {
+        refreshTextureCache();
+      }, 10000);
+
+      return () => {
+        if (refreshIntervalRef.current) {
+          clearInterval(refreshIntervalRef.current);
+        }
+      };
+    }
+  }, [contentType]);
 
   // Update hasMoreTextures when the base dataset or page changes
   useEffect(() => {
