@@ -255,20 +255,20 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     setPreloadLoading(false);
   };
 
-  // Refresh textures every 10 seconds to check for new uploads
+  // Refresh textures every 10 seconds to check for new uploads and metadata updates
   const refreshTextureCache = async () => {
     try {
       // Get current cache
       const cache = await getCache<Texture[]>('all_textures');
       const cachedTextures = cache && cache.value ? cache.value : [];
-      
-      // Fetch the newest textures (grab more than we might need to ensure we get all new ones)
-      const batchSize = 100;
+
+      // Fetch the most recently updated textures (grab more than we might need to ensure we get all recent updates)
+      const batchSize = 500;
       const { data: newTextures, error } = await supabase
         .from('textures')
         .select('*')
         .eq('status', 'approved')
-        .order('created_at', { ascending: false })
+        .order('updated_at', { ascending: false })
         .limit(batchSize);
 
       if (error) {
@@ -280,22 +280,20 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
 
       // Create a Set of cached IDs for quick lookup
       const cachedIds = new Set(cachedTextures.map(t => t.id));
-      
+
       // Find truly new textures (those not in cache)
       const actuallyNewTextures = newTextures.filter(t => !cachedIds.has(t.id));
 
-      // If there are new textures, merge and update cache
-      if (actuallyNewTextures.length > 0) {
-        const mergedTextures = [...newTextures, ...cachedTextures.filter(t => !new Set(newTextures.map(n => n.id)).has(t.id))];
-        
-        setAllTextures(mergedTextures);
-        
-        // Update cache with new merged list
-        try {
-          await setCache('all_textures', mergedTextures);
-        } catch (err) {
-          console.warn('Failed to update cache during refresh:', err);
-        }
+      // Merge textures, prioritizing recently updated ones (including metadata updates)
+      const mergedTextures = [...newTextures, ...cachedTextures.filter(t => !new Set(newTextures.map(n => n.id)).has(t.id))];
+
+      setAllTextures(mergedTextures);
+
+      // Update cache with new merged list
+      try {
+        await setCache('all_textures', mergedTextures);
+      } catch (err) {
+        console.warn('Failed to update cache during refresh:', err);
       }
     } catch (err) {
       console.error('Error refreshing texture cache:', err);
