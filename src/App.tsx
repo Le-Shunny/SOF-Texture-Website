@@ -108,8 +108,8 @@ function App() {
 
         {editingTexture && currentPage !== 'edit' && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-60 overflow-y-auto">
-            <div className="min-h-screen px-6 sm:px-4 py-8">
-              <div className="max-w-full lg:max-w-5xl mx-auto bg-[#cbd5e1] rounded-lg shadow-xl">
+            <div className="min-h-screen py-8">
+              <div className="max-w-full lg:max-w-7xl mx-auto bg-[#cbd5e1] rounded-lg shadow-xl">
                 <EditTexture texture={editingTexture} onClose={handleCloseEdit} onUpdate={handleUpdateTexture} />
               </div>
             </div>
@@ -119,7 +119,7 @@ function App() {
         {editingPack && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-60 overflow-y-auto">
             <div className="min-h-screen py-8">
-              <div className="max-w-full lg:max-w-5xl mx-auto bg-[#cbd5e1] rounded-lg shadow-xl">
+              <div className="max-w-full lg:max-w-7xl mx-auto bg-[#cbd5e1] rounded-lg shadow-xl">
                 <EditPack
                   pack={editingPack}
                   onUpdate={handleUpdatePack}
