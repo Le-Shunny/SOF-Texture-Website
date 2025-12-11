@@ -272,10 +272,15 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
         })
         .eq('id', texture.id)
         .eq('user_id', user.id)
-        .select()
-        .single();
+        .select();
 
       if (updateError) throw updateError;
+
+      if (!data || data.length !== 1) {
+        throw new Error('Failed to update texture: unexpected response from database');
+      }
+
+      const updatedTexture = data[0];
 
       // Delete old files if new ones were uploaded
       if (textureFile && originalTextureUrl !== newTextureUrl) {
@@ -286,7 +291,7 @@ export default function EditTexture({ texture, onUpdate, onNavigate, onClose }: 
       }
 
       setSuccess(true);
-      onUpdate(data);
+      onUpdate(updatedTexture);
       setTimeout(() => {
         if (onClose) {
           onClose();
