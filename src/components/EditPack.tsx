@@ -370,28 +370,39 @@ export default function EditPack({ pack, onUpdate, onClose }: EditPackProps) {
                 Select Textures (at least 1) *
               </label>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
-                {availableTextures.map((texture) => (
-                  <div
-                    key={texture.id}
-                    className={`border rounded-lg p-3 cursor-pointer transition ${
-                      selectedTextures.find(t => t.id === texture.id)
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-300 hover:border-gray-400'
-                    }`}
-                    onClick={() => toggleTextureSelection(texture)}
-                  >
-                    <img
-                      src={texture.thumbnail_url}
-                      alt={texture.title}
-                      className="w-full h-24 object-cover rounded mb-2"
-                    />
-                    <h3 className="font-medium text-sm">{texture.title}</h3>
-                    <p className="text-xs text-gray-600">{texture.aircraft} - {texture.category}</p>
-                    {selectedTextures.find(t => t.id === texture.id) && (
-                      <div className="mt-2 text-blue-600 text-xs font-medium">Selected</div>
-                    )}
-                  </div>
-                ))}
+                {availableTextures.map((texture) => {
+                  const isSelected = selectedTextures.find(t => t.id === texture.id);
+                  return (
+                    <div
+                      key={texture.id}
+                      className={`border rounded-lg p-3 cursor-pointer transition relative ${
+                        isSelected
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                      onClick={() => toggleTextureSelection(texture)}
+                    >
+                      <div className="absolute top-2 right-2">
+                        <input
+                          type="checkbox"
+                          checked={!!isSelected}
+                          onChange={() => toggleTextureSelection(texture)}
+                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                      </div>
+                      <img
+                        src={texture.thumbnail_url}
+                        alt={texture.title}
+                        className="w-full h-24 object-cover rounded mb-2"
+                      />
+                      <h3 className="font-medium text-sm">{texture.title}</h3>
+                      <p className="text-xs text-gray-600">{texture.aircraft} - {texture.category}</p>
+                      {isSelected && (
+                        <div className="mt-2 text-blue-600 text-xs font-medium">Selected</div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
               {availableTextures.length === 0 && (
                 <p className="text-gray-500">No approved textures found. Upload some textures first.</p>

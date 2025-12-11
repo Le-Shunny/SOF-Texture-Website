@@ -313,7 +313,7 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
   if (isEditing) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 z-60 overflow-y-auto">
-        <div className="min-h-screen px-6 sm:px-4 py-8">
+        <div className="min-h-screen px-0 py-8">
           <div className="max-w-full lg:max-w-5xl mx-auto bg-white rounded-lg shadow-xl">
             <EditPack
               pack={localPack}
