@@ -41,6 +41,7 @@ const TEXTURE_TYPE_OPTIONS = [
   'Simple Texture',
   'Detailed Texture',
   'Detailed and Weathered Texture',
+  'OUTDATED Texture'
   'Other',
 ];
 
