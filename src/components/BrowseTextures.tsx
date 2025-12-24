@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase, Texture, Pack } from '../lib/supabase';
-import { getCache, setCache, clearCache, updateCacheEntry, mergeRealtimeChange } from '../lib/cache';
+import { mergeRealtimeChange } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
 import { processText } from '../lib/utils';
 import { useRealtimeSubscription } from '../hooks/useRealtimeSubscription';
@@ -44,10 +44,6 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
   const [fetchedTypeOptions, setFetchedTypeOptions] = useState<string[]>([]);
   const [allTextures, setAllTextures] = useState<Texture[] | null>(null);
   const [filterLoading, setFilterLoading] = useState(false);
-  const [preloadLoading, setPreloadLoading] = useState(false);
-  const [preloadLoaded, setPreloadLoaded] = useState(0);
-  const [preloadTotal, setPreloadTotal] = useState<number | null>(null);
-  const preloadAbortRef = useRef({ aborted: false });
 
   // Real-time subscriptions for textures
   useRealtimeSubscription<Texture>({
@@ -56,19 +52,16 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     onInsert: (payload) => {
       if (payload.new) {
         setAllTextures(prev => prev ? mergeRealtimeChange(prev, 'INSERT', payload.new as Texture) : null);
-        updateCacheEntry('all_textures', (current) => mergeRealtimeChange(current, 'INSERT', payload.new as Texture));
       }
     },
     onUpdate: (payload) => {
       if (payload.new) {
         setAllTextures(prev => prev ? mergeRealtimeChange(prev, 'UPDATE', payload.new as Texture) : null);
-        updateCacheEntry('all_textures', (current) => mergeRealtimeChange(current, 'UPDATE', payload.new as Texture));
       }
     },
     onDelete: (payload) => {
       if (payload.old) {
         setAllTextures(prev => prev ? mergeRealtimeChange(prev, 'DELETE', undefined, payload.old as Texture) : null);
-        updateCacheEntry('all_textures', (current) => mergeRealtimeChange(current, 'DELETE', undefined, payload.old as Texture));
       }
     },
     onError: (error) => console.error('Texture subscription error:', error),
@@ -217,37 +210,15 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     }
   };
 
-  // Preload all approved textures (in background) so filtering/searching is fast
+  // Fetch all approved textures so filtering/searching is fast
   const fetchAllTextures = async () => {
     try {
-      // Reset abort flag
-      preloadAbortRef.current.aborted = false;
-      // Check cache first
-      let cachedTextures: Texture[] = [];
-      const cache = await getCache<Texture[]>('all_textures');
-      if (cache && cache.value && cache.value.length > 0) {
-        cachedTextures = cache.value;
-        setAllTextures(cachedTextures);
-        setPreloadLoaded(cachedTextures.length);
-        setPreloadTotal(cachedTextures.length);
-        // otherwise, continue to refresh in background while showing cached
-      }
       if (allTextures && allTextures.length > 0) return; // already loaded
-      setPreloadLoading(true);
-      if (cachedTextures.length === 0) {
-        setPreloadLoaded(0);
-        setPreloadTotal(null);
-      }
-      // Get total count first for progress
-      const countRes = await supabase.from('textures').select('id', { count: 'exact', head: true }).eq('status', 'approved');
-      const total = countRes.count ?? null;
-      if (total !== null) setPreloadTotal(total);
 
       const batchSize = 500; // chunk size
       let offset = 0;
       let combined: Texture[] = [];
       while (true) {
-        if (preloadAbortRef.current.aborted) break;
         const from = offset;
         const to = offset + batchSize - 1;
         const { data, error } = await supabase
@@ -267,52 +238,14 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
         offset += data.length;
         if (data.length < batchSize) break;
       }
-      
-      // Merge with cached textures, prioritizing new data (by deduplicating on ID)
-      const idSet = new Set(combined.map(t => t.id));
-      const mergedTextures = [...combined, ...cachedTextures.filter(t => !idSet.has(t.id))];
-      
-      // Set all textures at once to avoid duplicates
-      setAllTextures(mergedTextures);
-      setPreloadLoaded(mergedTextures.length);
-      setPreloadTotal(mergedTextures.length);
-      setHasMoreTextures(mergedTextures.length > pageSize);
-      // Save merged cache if we completed without abort
-      if (!preloadAbortRef.current.aborted) {
-        try {
-          await setCache('all_textures', mergedTextures);
-        } catch (err) {
-          console.warn('Failed to cache all_textures', err);
-        }
-      }
+
+      setAllTextures(combined);
+      setHasMoreTextures(combined.length > pageSize);
     } catch (err) {
-      console.error('Error preloading textures', err);
-    } finally {
-      setPreloadLoading(false);
+      console.error('Error fetching all textures', err);
     }
   };
 
-  const cancelPreload = () => {
-    preloadAbortRef.current.aborted = true;
-    setPreloadLoading(false);
-  };
-
-
-  const handleClearCache = async () => {
-    try {
-      await clearCache('all_textures');
-      setAllTextures(null);
-      setPreloadLoaded(0);
-      setPreloadTotal(null);
-      // Reset visible list and reload first page
-      setTextures([]);
-      fetchTextures(0, false);
-      fetchFilterOptions();
-      // Optionally re-run preload
-    } catch (err) {
-      console.warn('Failed to clear cache', err);
-    }
-  };
 
   const loadMore = () => {
     if (contentType === 'textures') {
@@ -642,23 +575,6 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                {preloadLoading && (
-                  <div className="text-sm text-gray-500 ml-3 flex items-center gap-2">
-                    <span>Preloading {preloadLoaded}{preloadTotal ? `/${preloadTotal}` : ''}</span>
-                    <button
-                      onClick={cancelPreload}
-                      className="text-xs text-gray-700 bg-gray-200 px-2 py-1 rounded hover:bg-gray-300"
-                    >
-                      Stop
-                    </button>
-                    <button
-                      onClick={handleClearCache}
-                      className="text-xs text-gray-700 bg-gray-200 px-2 py-1 rounded hover:bg-gray-300"
-                    >
-                      Clear Cache
-                    </button>
-                  </div>
-                )}
               </div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                 <button
@@ -757,19 +673,6 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
             </div>
           </div>
 
-          {/* Preload progress bar */}
-          {preloadLoading && (
-            <div className="h-1 bg-gray-200 rounded-b overflow-hidden">
-              {preloadTotal ? (
-                <div
-                  className="h-full bg-blue-600 transition-all"
-                  style={{ width: `${Math.min(100, Math.round((preloadLoaded / (preloadTotal || 1)) * 100))}%` }}
-                />
-              ) : (
-                <div className="h-full bg-blue-600 animate-pulse" style={{ width: '40%' }} />
-              )}
-            </div>
-          )}
 
           {filtersExpanded && contentType === 'textures' && (
             <div className="p-4 space-y-4">

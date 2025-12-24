@@ -41,3 +41,40 @@ export function processText(text: string): string {
     return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
   });
 }
+
+// Helper to merge real-time changes into array
+export function mergeRealtimeChange<T extends { id: string }>(
+  current: T[] | null,
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE',
+  newRecord?: T,
+  oldRecord?: T
+): T[] | null {
+  if (!current) return null;
+
+  switch (eventType) {
+    case 'INSERT':
+      if (newRecord) {
+        // Add new item, avoid duplicates
+        const exists = current.some(item => item.id === newRecord.id);
+        return exists ? current : [...current, newRecord];
+      }
+      return current;
+
+    case 'UPDATE':
+      if (newRecord) {
+        return current.map(item =>
+          item.id === newRecord.id ? { ...item, ...newRecord } : item
+        );
+      }
+      return current;
+
+    case 'DELETE':
+      if (oldRecord) {
+        return current.filter(item => item.id !== oldRecord.id);
+      }
+      return current;
+
+    default:
+      return current;
+  }
+}
