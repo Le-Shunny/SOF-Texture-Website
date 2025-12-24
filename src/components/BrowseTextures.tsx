@@ -338,8 +338,13 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this texture? This will also delete the associated files.')) return;
 
-    const texture = textures.find((t) => t.id === id);
-    if (!texture) return;
+    // Find texture in either allTextures (if preloaded) or current page textures
+    const texture = (allTextures || textures).find((t) => t.id === id);
+    
+    if (!texture) {
+      console.error('Texture not found for deletion:', id);
+      return;
+    }
 
     if (!isAdmin && (!user || texture.user_id !== user.id)) {
       alert('You can only delete your own textures.');
@@ -353,9 +358,9 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
       await deleteTextureCompletely(id, texture.texture_url, texture.thumbnail_url);
       
       // Remove from local state
-      setTextures(textures.filter((t) => t.id !== id));
+      setTextures(prev => prev.filter((t) => t.id !== id));
       // Remove from preloaded set if present
-      setAllTextures(prev => prev ? prev.filter((t) => t.id !== id) : prev);
+      setAllTextures(prev => prev ? prev.filter((t) => t.id !== id) : null);
       // Refresh filter options (in case the deleted texture changed available filters)
       fetchFilterOptions();
       

@@ -191,11 +191,12 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
 
     setLoading(true);
     try {
-      const { error } = await supabase.from('textures').delete().eq('id', texture.id);
+      // Import storage utility
+      const { deleteTextureCompletely } = await import('../lib/storageUtils');
+      
+      await deleteTextureCompletely(localTexture.id, localTexture.texture_url, localTexture.thumbnail_url);
 
-      if (error) throw error;
-
-      alert('Texture deleted successfully.');
+      alert('Texture and associated files deleted successfully.');
       onClose();
     } catch (error) {
       console.error('Error deleting texture:', error);

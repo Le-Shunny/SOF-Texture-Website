@@ -24,6 +24,7 @@ dist-ssr
 .replit
 .zencoder/rules/repo.md
 .zencoder/*
+.zenflow
 -p
 TODO.md
 migrate_texture_thumbnails.js
