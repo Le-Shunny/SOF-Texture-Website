@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase, Texture, Pack } from '../lib/supabase';
-import { getCache, setCache, clearCache } from '../lib/cache';
+import { getCache, setCache, clearCache, updateCacheEntry, mergeRealtimeChange } from '../lib/cache';
 import { useAuth } from '../contexts/AuthContext';
 import { processText } from '../lib/utils';
+import { useRealtimeSubscription } from '../hooks/useRealtimeSubscription';
 import { Search, Download, Edit, Trash2, ThumbsUp, ThumbsDown, User, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface BrowseTexturesProps {
@@ -47,7 +48,54 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
   const [preloadLoaded, setPreloadLoaded] = useState(0);
   const [preloadTotal, setPreloadTotal] = useState<number | null>(null);
   const preloadAbortRef = useRef({ aborted: false });
-  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Real-time subscriptions for textures
+  useRealtimeSubscription<Texture>({
+    table: 'textures',
+    filter: 'status=eq.approved',
+    onInsert: (payload) => {
+      if (payload.new) {
+        setAllTextures(prev => prev ? mergeRealtimeChange(prev, 'INSERT', payload.new as Texture) : null);
+        updateCacheEntry('all_textures', (current) => mergeRealtimeChange(current, 'INSERT', payload.new as Texture));
+      }
+    },
+    onUpdate: (payload) => {
+      if (payload.new) {
+        setAllTextures(prev => prev ? mergeRealtimeChange(prev, 'UPDATE', payload.new as Texture) : null);
+        updateCacheEntry('all_textures', (current) => mergeRealtimeChange(current, 'UPDATE', payload.new as Texture));
+      }
+    },
+    onDelete: (payload) => {
+      if (payload.old) {
+        setAllTextures(prev => prev ? mergeRealtimeChange(prev, 'DELETE', undefined, payload.old as Texture) : null);
+        updateCacheEntry('all_textures', (current) => mergeRealtimeChange(current, 'DELETE', undefined, payload.old as Texture));
+      }
+    },
+    onError: (error) => console.error('Texture subscription error:', error),
+  });
+
+  // Real-time subscriptions for packs
+  useRealtimeSubscription<Pack>({
+    table: 'packs',
+    filter: 'status=eq.approved',
+    onInsert: (payload) => {
+      if (payload.new) {
+        setPacks(prev => mergeRealtimeChange(prev, 'INSERT', payload.new as Pack) as Pack[]);
+      }
+    },
+    onUpdate: (payload) => {
+      if (payload.new) {
+        setPacks(prev => mergeRealtimeChange(prev, 'UPDATE', payload.new as Pack) as Pack[]);
+      }
+    },
+    onDelete: (payload) => {
+      console.log('Pack delete payload:', payload);
+      if (payload.old) {
+        setPacks(prev => mergeRealtimeChange(prev, 'DELETE', undefined, payload.old as Pack) as Pack[]);
+      }
+    },
+    onError: (error) => console.error('Pack subscription error:', error),
+  });
 
   const fetchTextures = async (page: number = 0, append: boolean = false) => {
     if (append) {
@@ -182,12 +230,6 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
         setAllTextures(cachedTextures);
         setPreloadLoaded(cachedTextures.length);
         setPreloadTotal(cachedTextures.length);
-        // If cache is fresh (less than 1 hour), skip reloading
-        const age = Date.now() - cache.timestamp;
-        const ONE_HOUR = 60 * 60 * 1000;
-        if (age < ONE_HOUR) {
-          return; // use cached data, don't re-fetch
-        }
         // otherwise, continue to refresh in background while showing cached
       }
       if (allTextures && allTextures.length > 0) return; // already loaded
@@ -255,50 +297,6 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     setPreloadLoading(false);
   };
 
-  // Refresh textures every 10 seconds to check for new uploads and metadata updates
-  const refreshTextureCache = async () => {
-    try {
-      // Get current cache
-      const cache = await getCache<Texture[]>('all_textures');
-      const cachedTextures = cache && cache.value ? cache.value : [];
-
-      // Fetch the most recently updated textures (grab more than we might need to ensure we get all recent updates)
-      const batchSize = 500;
-      const { data: newTextures, error } = await supabase
-        .from('textures')
-        .select('*')
-        .eq('status', 'approved')
-        .order('updated_at', { ascending: false })
-        .limit(batchSize);
-
-      if (error) {
-        console.error('Failed to refresh textures:', error);
-        return;
-      }
-
-      if (!newTextures || newTextures.length === 0) return;
-
-      // Create a Set of cached IDs for quick lookup
-      const cachedIds = new Set(cachedTextures.map(t => t.id));
-
-      // Find truly new textures (those not in cache)
-      const actuallyNewTextures = newTextures.filter(t => !cachedIds.has(t.id));
-
-      // Merge textures, prioritizing recently updated ones (including metadata updates)
-      const mergedTextures = [...newTextures, ...cachedTextures.filter(t => !new Set(newTextures.map(n => n.id)).has(t.id))];
-
-      setAllTextures(mergedTextures);
-
-      // Update cache with new merged list
-      try {
-        await setCache('all_textures', mergedTextures);
-      } catch (err) {
-        console.warn('Failed to update cache during refresh:', err);
-      }
-    } catch (err) {
-      console.error('Error refreshing texture cache:', err);
-    }
-  };
 
   const handleClearCache = async () => {
     try {
@@ -578,21 +576,7 @@ export default function BrowseTextures({ onViewTexture, onEditTexture, onViewPac
     setTimeout(() => setLoading(false), 100);
   }, []);
 
-  // Set up 10-second refresh interval for texture cache
-  useEffect(() => {
-    if (contentType === 'textures') {
-      // Initial refresh after 10 seconds
-      refreshIntervalRef.current = setInterval(() => {
-        refreshTextureCache();
-      }, 5000);
-
-      return () => {
-        if (refreshIntervalRef.current) {
-          clearInterval(refreshIntervalRef.current);
-        }
-      };
-    }
-  }, [contentType]);
+  // Real-time subscriptions replace the need for periodic refresh
 
   // Update hasMoreTextures when the base dataset or page changes
   useEffect(() => {

@@ -66,3 +66,56 @@ export async function clearAllCache(): Promise<void> {
     req.onerror = () => reject(req.error);
   });
 }
+
+// Update cache entry by merging changes (for real-time updates)
+export async function updateCacheEntry<T extends { id: string }>(
+  key: string,
+  updater: (current: T[] | null) => T[] | null
+): Promise<void> {
+  try {
+    const current = await getCache<T[]>(key);
+    const updated = updater(current?.value || null);
+    if (updated !== null) {
+      await setCache(key, updated);
+    }
+  } catch (error) {
+    console.error('Failed to update cache entry:', error);
+  }
+}
+
+// Helper to merge real-time changes into array cache
+export function mergeRealtimeChange<T extends { id: string }>(
+  current: T[] | null,
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE',
+  newRecord?: T,
+  oldRecord?: T
+): T[] | null {
+  if (!current) return null;
+
+  switch (eventType) {
+    case 'INSERT':
+      if (newRecord) {
+        // Add new item, avoid duplicates
+        const exists = current.some(item => item.id === newRecord.id);
+        return exists ? current : [...current, newRecord];
+      }
+      return current;
+
+    case 'UPDATE':
+      if (newRecord) {
+        return current.map(item =>
+          item.id === newRecord.id ? { ...item, ...newRecord } : item
+        );
+      }
+      return current;
+
+    case 'DELETE':
+      if (oldRecord) {
+        return current.filter(item => item.id !== oldRecord.id);
+      }
+      return current;
+
+    default:
+      return current;
+  }
+}

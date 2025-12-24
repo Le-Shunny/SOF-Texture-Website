@@ -8,6 +8,7 @@ import TextureDetail from './TextureDetail';
 import { deleteStorageFile } from '../lib/storageUtils';
 import { processText } from '../lib/utils';
 import Turnstile from 'react-turnstile';
+import { useRealtimeSubscription } from '../hooks/useRealtimeSubscription';
 
 const CLOUDFLARE_SITE_KEY = import.meta.env.VITE_CLOUDFLARE_SITE_KEY;
 
@@ -38,6 +39,91 @@ export default function PackDetail({ pack, onClose, onViewProfile, onViewTexture
   useEffect(() => {
     fetchPackData();
   }, [pack.id]);
+
+  // Real-time subscriptions
+  useRealtimeSubscription<PackComment>({
+    table: 'pack_comments',
+    filter: `pack_id=eq.${pack.id}`,
+    onInsert: (payload) => {
+      if (payload.new) {
+        setComments(prev => [payload.new as PackComment, ...prev]);
+      }
+    },
+    onUpdate: (payload) => {
+      if (payload.new) {
+        const newComment = payload.new as PackComment;
+        setComments(prev => prev.map(c => c.id === newComment.id ? { ...c, ...newComment } : c));
+      }
+    },
+    onDelete: (payload) => {
+      if (payload.old) {
+        const oldComment = payload.old as PackComment;
+        setComments(prev => prev.filter(c => c.id !== oldComment.id));
+      }
+    },
+    onError: (error) => console.error('Pack comments subscription error:', error),
+  });
+
+  useRealtimeSubscription<PackVote>({
+    table: 'pack_votes',
+    filter: `pack_id=eq.${pack.id}`,
+    onInsert: (payload) => {
+      if (payload.new) {
+        const newVote = payload.new as PackVote;
+        if (newVote.user_id === user?.id) {
+          setUserVote(newVote);
+          setLocalPack(prev => ({
+            ...prev,
+            upvotes: newVote.vote_type === 'upvote' ? prev.upvotes + 1 : prev.upvotes,
+            downvotes: newVote.vote_type === 'downvote' ? prev.downvotes + 1 : prev.downvotes,
+          }));
+        }
+      }
+    },
+    onUpdate: (payload) => {
+      if (payload.new) {
+        const newVote = payload.new as PackVote;
+        if (newVote.user_id === user?.id) {
+          setUserVote(newVote);
+          if (payload.old) {
+            const oldVote = payload.old as PackVote;
+            if (oldVote.vote_type !== newVote.vote_type) {
+              setLocalPack(prev => ({
+                ...prev,
+                upvotes: newVote.vote_type === 'upvote' ? prev.upvotes + 1 : prev.upvotes - 1,
+                downvotes: newVote.vote_type === 'downvote' ? prev.downvotes + 1 : prev.downvotes - 1,
+              }));
+            }
+          }
+        }
+      }
+    },
+    onDelete: (payload) => {
+      if (payload.old) {
+        const oldVote = payload.old as PackVote;
+        if (oldVote.user_id === user?.id) {
+          setUserVote(null);
+          setLocalPack(prev => ({
+            ...prev,
+            upvotes: oldVote.vote_type === 'upvote' ? prev.upvotes - 1 : prev.upvotes,
+            downvotes: oldVote.vote_type === 'downvote' ? prev.downvotes - 1 : prev.downvotes,
+          }));
+        }
+      }
+    },
+    onError: (error) => console.error('Pack votes subscription error:', error),
+  });
+
+  useRealtimeSubscription<Pack>({
+    table: 'packs',
+    filter: `id=eq.${pack.id}`,
+    onUpdate: (payload) => {
+      if (payload.new) {
+        setLocalPack(prev => ({ ...prev, ...payload.new } as Pack));
+      }
+    },
+    onError: (error) => console.error('Pack subscription error:', error),
+  });
 
   const fetchPackData = async () => {
     setLoading(true);

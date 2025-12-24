@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase, Texture, Comment, Vote } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { formatNumber, processText } from '../lib/utils';
+import { useRealtimeSubscription } from '../hooks/useRealtimeSubscription';
 import {
   X,
   Download,
@@ -45,6 +46,93 @@ export default function TextureDetail({ texture, onClose, onEdit, onViewProfile 
       fetchUserVote();
     }
   }, [texture.id, user]);
+
+  // Real-time subscriptions
+  useRealtimeSubscription<Comment>({
+    table: 'texture_comments',
+    filter: `texture_id=eq.${texture.id}`,
+    onInsert: (payload) => {
+      if (payload.new) {
+        setComments(prev => [payload.new as Comment, ...prev]);
+      }
+    },
+    onUpdate: (payload) => {
+      if (payload.new) {
+        const newComment = payload.new as Comment;
+        setComments(prev => prev.map(c => c.id === newComment.id ? { ...c, ...newComment } : c));
+      }
+    },
+    onDelete: (payload) => {
+      if (payload.old) {
+        const oldComment = payload.old as Comment;
+        setComments(prev => prev.filter(c => c.id !== oldComment.id));
+      }
+    },
+    onError: (error) => console.error('Texture comments subscription error:', error),
+  });
+
+  useRealtimeSubscription<Vote>({
+    table: 'texture_votes',
+    filter: `texture_id=eq.${texture.id}`,
+    onInsert: (payload) => {
+      if (payload.new) {
+        const newVote = payload.new as Vote;
+        if (newVote.user_id === user?.id) {
+          setUserVote(newVote);
+          // Update texture vote counts optimistically
+          setLocalTexture(prev => ({
+            ...prev,
+            upvotes: newVote.vote_type === 'upvote' ? prev.upvotes + 1 : prev.upvotes,
+            downvotes: newVote.vote_type === 'downvote' ? prev.downvotes + 1 : prev.downvotes,
+          }));
+        }
+      }
+    },
+    onUpdate: (payload) => {
+      if (payload.new) {
+        const newVote = payload.new as Vote;
+        if (newVote.user_id === user?.id) {
+          setUserVote(newVote);
+          // Adjust counts based on vote change
+          if (payload.old) {
+            const oldVote = payload.old as Vote;
+            if (oldVote.vote_type !== newVote.vote_type) {
+              setLocalTexture(prev => ({
+                ...prev,
+                upvotes: newVote.vote_type === 'upvote' ? prev.upvotes + 1 : prev.upvotes - 1,
+                downvotes: newVote.vote_type === 'downvote' ? prev.downvotes + 1 : prev.downvotes - 1,
+              }));
+            }
+          }
+        }
+      }
+    },
+    onDelete: (payload) => {
+      if (payload.old) {
+        const oldVote = payload.old as Vote;
+        if (oldVote.user_id === user?.id) {
+          setUserVote(null);
+          setLocalTexture(prev => ({
+            ...prev,
+            upvotes: oldVote.vote_type === 'upvote' ? prev.upvotes - 1 : prev.upvotes,
+            downvotes: oldVote.vote_type === 'downvote' ? prev.downvotes - 1 : prev.downvotes,
+          }));
+        }
+      }
+    },
+    onError: (error) => console.error('Texture votes subscription error:', error),
+  });
+
+  useRealtimeSubscription<Texture>({
+    table: 'textures',
+    filter: `id=eq.${texture.id}`,
+    onUpdate: (payload) => {
+      if (payload.new) {
+        setLocalTexture(prev => ({ ...prev, ...payload.new } as Texture));
+      }
+    },
+    onError: (error) => console.error('Texture subscription error:', error),
+  });
 
   const fetchComments = async () => {
     const { data, error } = await supabase
